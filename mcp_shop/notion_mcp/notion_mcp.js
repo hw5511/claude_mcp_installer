@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const { Client } = require("@notionhq/client");
 const notionToMd = require("notion-to-md");
 const base64 = require("base64-js");
