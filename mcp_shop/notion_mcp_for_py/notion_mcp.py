@@ -630,7 +630,19 @@ def format_response(data, format="json"):
         except Exception as e:
             mcp.error_print(f"마크다운 변환 오류: {str(e)}")
     
-    return data
+    # JSON 직렬화 가능하도록 데이터 정제
+    def make_json_serializable(obj):
+        if isinstance(obj, dict):
+            return {k: make_json_serializable(v) for k, v in obj.items() 
+                   if not callable(v)}  # 함수 객체 제외
+        elif isinstance(obj, list):
+            return [make_json_serializable(item) for item in obj]
+        elif callable(obj):  # 함수 객체는 문자열로 변환
+            return "function"
+        else:
+            return obj
+    
+    return make_json_serializable(data)
 
 # MCP 도구 등록
 mcp.register_tool({
@@ -1210,8 +1222,27 @@ if __name__ == "__main__":
             
             # 표준 출력으로 응답 보내기
             def send_response(response):
-                sys.stdout.write(json.dumps(response) + "\n")
-                sys.stdout.flush()
+                try:
+                    # 더블 체크: JSON 직렬화할 수 없는 객체 확인
+                    response_str = json.dumps(response)
+                    sys.stdout.write(response_str + "\n")
+                    sys.stdout.flush()
+                except TypeError as e:
+                    # JSON 직렬화 오류 발생 시 오류 메시지 출력 및 응답 정제
+                    print(json.dumps({"type": "error", "message": f"JSON 직렬화 오류: {str(e)}"}), file=sys.stderr)
+                    
+                    # 응답에서 직렬화할 수 없는 객체 제거 시도
+                    simplified_response = {
+                        "jsonrpc": "2.0",
+                        "id": response.get("id"),
+                        "error": {
+                            "code": -32603,
+                            "message": "JSON 직렬화할 수 없는 객체가 포함되어 있습니다."
+                        }
+                    }
+                    
+                    sys.stdout.write(json.dumps(simplified_response) + "\n")
+                    sys.stdout.flush()
             
             # 메서드 처리
             def handle_method(request):
@@ -1223,6 +1254,13 @@ if __name__ == "__main__":
                 
                 # initialize 메서드 처리
                 if method == "initialize":
+                    # tools에서 handler 필드를 제외한 복사본 생성
+                    serializable_tools = []
+                    for tool in mcp.tools:
+                        # handler 필드를 제외한 복사본 생성
+                        serializable_tool = {k: v for k, v in tool.items() if k != 'handler'}
+                        serializable_tools.append(serializable_tool)
+                    
                     response = {
                         "jsonrpc": "2.0",
                         "id": request_id,
@@ -1231,7 +1269,7 @@ if __name__ == "__main__":
                             "name": "notion_py",
                             "version": "1.0.0",
                             "capabilities": {
-                                "tools": mcp.tools
+                                "tools": serializable_tools  # handler 필드가 없는 도구 목록 사용
                             }
                         }
                     }
@@ -1247,13 +1285,26 @@ if __name__ == "__main__":
                         tool = mcp._tool_registry[tool_name]
                         handler = tool.get("handler")
                         if handler:
-                            result = handler(**params)
-                            response = {
-                                "jsonrpc": "2.0",
-                                "id": request_id,
-                                "result": result
-                            }
-                            return response
+                            try:
+                                result = handler(**params)
+                                # 결과를 JSON 직렬화 가능하게 만들기
+                                response = {
+                                    "jsonrpc": "2.0",
+                                    "id": request_id,
+                                    "result": result
+                                }
+                                return response
+                            except Exception as e:
+                                print(json.dumps({"type": "error", "message": f"도구 호출 오류: {str(e)}"}), file=sys.stderr)
+                                response = {
+                                    "jsonrpc": "2.0",
+                                    "id": request_id,
+                                    "error": {
+                                        "code": -32000,
+                                        "message": f"도구 실행 오류: {str(e)}"
+                                    }
+                                }
+                                return response
                     
                     # 도구를 찾지 못했거나 처리에 실패한 경우
                     response = {
@@ -1286,8 +1337,32 @@ if __name__ == "__main__":
                     response = handle_method(request)
                     if response:  # notifications는 응답이 없음
                         send_response(response)
+                except json.JSONDecodeError as e:
+                    print(json.dumps({"type": "error", "message": f"잘못된 JSON 형식: {str(e)}"}), file=sys.stderr)
+                    error_response = {
+                        "jsonrpc": "2.0",
+                        "id": None,  # 요청 ID를 알 수 없음
+                        "error": {
+                            "code": -32700,
+                            "message": f"잘못된 JSON 형식: {str(e)}"
+                        }
+                    }
+                    send_response(error_response)
+                except TypeError as e:
+                    print(json.dumps({"type": "error", "message": f"타입 오류: {str(e)}"}), file=sys.stderr)
+                    error_response = {
+                        "jsonrpc": "2.0",
+                        "id": request.get("id") if 'request' in locals() else None,
+                        "error": {
+                            "code": -32603,
+                            "message": f"JSON 직렬화 오류: {str(e)}"
+                        }
+                    }
+                    send_response(error_response)
                 except Exception as e:
-                    print(json.dumps({"type": "error", "message": f"Error processing request: {str(e)}"}), file=sys.stderr)
+                    print(json.dumps({"type": "error", "message": f"요청 처리 오류: {str(e)}"}), file=sys.stderr)
+                    import traceback
+                    print(json.dumps({"type": "error", "message": f"상세 오류: {traceback.format_exc()}"}), file=sys.stderr)
                     
                     # 오류 응답
                     error_response = {
@@ -1295,7 +1370,7 @@ if __name__ == "__main__":
                         "id": request.get("id") if 'request' in locals() else None,
                         "error": {
                             "code": -32603,
-                            "message": f"Internal error: {str(e)}"
+                            "message": f"내부 서버 오류: {str(e)}"
                         }
                     }
                     send_response(error_response)
