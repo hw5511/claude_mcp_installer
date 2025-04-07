@@ -442,12 +442,27 @@ def install_mcp_template(mcp_name, mcp_dir=None):
     # 메타데이터 파일 확인
     metadata_file = os.path.join(mcp_dir, 'metadata.json')
     auth_tokens = {}
+    requires_dependencies = False
+    install_script = None
     
     if os.path.exists(metadata_file):
         try:
             with open(metadata_file, 'r', encoding='utf-8') as f:
                 metadata = json.load(f)
                 
+            # 의존성 설치가 필요한지 확인
+            requires_dependencies = metadata.get('requires_dependencies', False)
+            
+            # 운영체제에 맞는 설치 스크립트 결정
+            if requires_dependencies and 'install_script' in metadata:
+                os_type = platform.system().lower()
+                if os_type == 'windows' and 'windows' in metadata['install_script']:
+                    install_script = metadata['install_script']['windows']
+                elif os_type == 'darwin' and 'macos' in metadata['install_script']:
+                    install_script = metadata['install_script']['macos']
+                elif os_type == 'linux' and 'linux' in metadata['install_script']:
+                    install_script = metadata['install_script']['linux']
+            
             # 인증이 필요한 경우
             if metadata.get('requires_authentication', False):
                 auth_guide = metadata.get('auth_guide', {}).get(LANG, metadata.get('auth_guide', {}).get('en', {}))
@@ -540,6 +555,25 @@ def install_mcp_template(mcp_name, mcp_dir=None):
             # 업데이트된 설정 저장
             with open(config_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=2)
+    
+    # 3. 의존성 설치 스크립트 실행 (필요한 경우)
+    if requires_dependencies and install_script:
+        install_script_path = os.path.join(mcp_dir, install_script)
+        if os.path.exists(install_script_path):
+            print(f"\n의존성 패키지 설치를 시작합니다...")
+            try:
+                if platform.system().lower() == 'windows':
+                    subprocess.run([install_script_path], shell=True, check=True)
+                else:
+                    # Linux/macOS에서는 실행 권한 부여 후 실행
+                    os.chmod(install_script_path, 0o755)
+                    subprocess.run([install_script_path], shell=True, check=True)
+                print("의존성 패키지 설치가 완료되었습니다.")
+            except subprocess.CalledProcessError as e:
+                print(f"의존성 패키지 설치 중 오류가 발생했습니다: {str(e)}")
+                print("수동으로 필요한 패키지를 설치해주세요.")
+        else:
+            print(f"설치 스크립트를 찾을 수 없습니다: {install_script_path}")
     
     print(TEXTS[LANG]['mcp_install_complete'].format(mcp_name))
     print(TEXTS[LANG]['restart_claude'])

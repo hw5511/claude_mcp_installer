@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "Notion API와 통신하여 Claude가 Notion 문서와 데이터베이스를 관리할 수 있게 합니다.",
   "requires_authentication": true,
+  "requires_dependencies": true,
+  "install_script": {
+    "windows": "install_dependencies.bat",
+    "linux": "install_dependencies.sh",
+    "macos": "install_dependencies.sh"
+  },
   "reference": {
     "repository": "https://github.com/suekou/mcp-notion-server",
     "author": "suekou",
