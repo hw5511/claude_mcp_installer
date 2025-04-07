@@ -14,181 +14,18 @@ import requests  # GitHub API 사용을 위해 추가
 import io
 import zipfile  # ZIP 파일 처리 위해 추가
 
+# 설정 파일 import
+import config
+
 # Initialize colorama
 init()
 
-# 기본 언어 설정 (시스템 로케일 기반)
-DEFAULT_LANG = 'ko' if locale.getdefaultlocale()[0].startswith('ko') else 'en'
-LANG = DEFAULT_LANG  # 전역 언어 설정
+# 전역 언어 설정
+LANG = config.DEFAULT_LANG
 
-# GitHub 리포지토리 설정 (상수)
-GITHUB_REPO_OWNER = "hw5511"
-GITHUB_REPO_NAME = "claude_mcp_installer"
-GITHUB_REPO_BRANCH = "main"
-MCP_SHOP_PATH = "mcp_shop"
-REMOTE_MCP_CACHE_DIR = os.path.join(os.environ['APPDATA'], 'Claude', 'remote_mcp_cache')
-
-# 다국어 메시지
-TEXTS = {
-    'ko': {
-        'banner_title': "Claude 확장 스크립트 설치 프로그램",
-        'banner_desc': "이 프로그램은 Claude 데스크톱 애플리케이션을 위한 확장 기능을 설치합니다.",
-        'banner_features': "파일 시스템 접근, 터미널 명령어 실행, 허용 경로 관리 기능을 제공합니다.",
-        'already_installed': "이미 설치되어 있습니다.",
-        'not_installed': "설치되어 있지 않습니다.",
-        'options': "옵션:",
-        'option_reinstall': "  1. 초기화하고 재설치",
-        'option_manage_dirs': "  2. 허용 경로 관리",
-        'option_exit': "  3. 종료",
-        'option_install': "  1. 설치하기",
-        'option_exit_simple': "  2. 종료",
-        'select': "선택하세요",
-        'invalid_choice': "유효하지 않은 선택입니다.",
-        'exiting': "종료합니다.",
-        'create_dir': "디렉토리 생성:",
-        'copying_files': "파일 복사 중...",
-        'file_copied': "  - {0} 복사 완료",
-        'file_error': "  - 오류: {0} 파일을 찾을 수 없습니다.",
-        'configuring_json': "설정 파일 구성 중...",
-        'json_saved': "  - 설정 파일 저장 완료: {0}",
-        'configuring_allowed_dirs': "허용 경로 파일 설정 중...",
-        'allowed_dirs_saved': "  - 허용 경로 파일 저장 완료: {0}",
-        'no_allowed_dirs_file': "허용 경로 파일이 없습니다. 먼저 설치를 진행해주세요.",
-        'allowed_dirs_management': "허용 경로 관리",
-        'current_allowed_dirs': "현재 허용된 경로:",
-        'add_path': "  1. 경로 추가",
-        'remove_path': "  2. 경로 삭제",
-        'save_exit': "  3. 저장하고 종료",
-        'cancel_exit': "  4. 변경 사항 취소하고 종료",
-        'enter_path': "추가할 경로를 입력하세요:",
-        'path_added': "추가됨: {0}",
-        'path_invalid': "경로가 이미 존재하거나 유효하지 않습니다.",
-        'enter_number': "삭제할 경로 번호를 입력하세요:",
-        'removed': "삭제됨: {0}",
-        'invalid_number': "유효하지 않은 번호입니다.",
-        'numeric_required': "숫자를 입력해야 합니다.",
-        'changes_saved': "변경 사항이 저장되었습니다.",
-        'changes_cancelled': "변경 사항을 취소하고 종료합니다.",
-        'install_start': "설치를 시작합니다...",
-        'install_complete': "설치가 완료되었습니다!",
-        'restart_claude': "Claude 데스크톱 앱을 다시 시작하면 변경 사항이 적용됩니다.",
-        'uninstall_start': "설치 제거를 시작합니다...",
-        'dir_deleted': "  - 디렉토리 삭제 완료: {0}",
-        'config_deleted': "  - 설정 파일 삭제 완료: {0}",
-        'uninstall_complete': "설치 제거가 완료되었습니다!",
-        'mcp_shop_title': "MCP Shop에서 사용 가능한 MCP 템플릿을 보여주고 설치할 수 있는 기능",
-        'available_mcps': "사용 가능한 MCP 템플릿 목록",
-        'install_mcp': "선택한 MCP 템플릿을 설치하기",
-        'back_to_main': "메인 메뉴로 돌아가기",
-        'mcp_shop_not_found': "MCP Shop 디렉토리를 찾을 수 없습니다.",
-        'no_mcps_available': "사용 가능한 MCP 템플릿이 없습니다.",
-        'mcp_not_found': "{0} MCP 템플릿을 찾을 수 없습니다.",
-        'installing_mcp': "선택한 {0} MCP 템플릿을 설치하는 중...",
-        'config_updated': "{0} MCP 서버 설정 업데이트 완료",
-        'mcp_install_complete': "{0} MCP 템플릿 설치 완료",
-        'list_installed_mcps': "  4. 설치된 MCP 목록 확인 및 관리",
-        'installed_mcps_title': "설치된 MCP 목록",
-        'no_installed_mcps': "설치된 MCP가 없습니다.",
-        'remove_mcp': "  1. MCP 제거",
-        'install_mcp_option': "  2. 새 MCP 설치",
-        'select_mcp_remove': "제거할 MCP 번호를 선택하세요",
-        'removing_mcp': "MCP 제거 중: {0}",
-        'mcp_removed': "MCP가 성공적으로 제거되었습니다: {0}",
-        'mcp_removal_failed': "MCP 제거 실패: {0}",
-        'no_mcps_to_remove': "제거할 MCP가 없습니다.",
-        'remote_mcp_shop': "원격 MCP Shop",
-        'connecting_to_github': "GitHub 저장소에서 MCP 템플릿 목록을 가져오는 중...",
-        'github_connection_error': "GitHub 연결 오류: {0}",
-        'downloading_mcp': "MCP 템플릿 다운로드 중: {0}",
-        'download_complete': "다운로드 완료: {0}",
-        'download_failed': "다운로드 실패: {0}",
-        'local_remote_choice': "MCP 소스 선택:",
-        'local_mcp_option': "  1. 로컬 MCP Shop",
-        'remote_mcp_option': "  2. 원격 MCP Shop (GitHub)",
-        'remote_mcp_refresh': "  3. 원격 MCP 목록 새로고침"
-    },
-    'en': {
-        'banner_title': "Claude Extension Script Installer",
-        'banner_desc': "This program installs extension functionality for Claude desktop application.",
-        'banner_features': "It provides file system access, terminal command execution, and allowed path management.",
-        'already_installed': "Already installed.",
-        'not_installed': "Not installed.",
-        'options': "Options:",
-        'option_reinstall': "  1. Reset and reinstall",
-        'option_manage_dirs': "  2. Manage allowed directories",
-        'option_exit': "  3. Exit",
-        'option_install': "  1. Install",
-        'option_exit_simple': "  2. Exit",
-        'select': "Select",
-        'invalid_choice': "Invalid choice.",
-        'exiting': "Exiting.",
-        'create_dir': "Creating directory:",
-        'copying_files': "Copying files...",
-        'file_copied': "  - {0} copied successfully",
-        'file_error': "  - Error: File {0} not found",
-        'configuring_json': "Configuring settings file...",
-        'json_saved': "  - Settings file saved: {0}",
-        'configuring_allowed_dirs': "Configuring allowed directories file...",
-        'allowed_dirs_saved': "  - Allowed directories file saved: {0}",
-        'no_allowed_dirs_file': "Allowed directories file not found. Please install first.",
-        'allowed_dirs_management': "Allowed Directories Management",
-        'current_allowed_dirs': "Current allowed directories:",
-        'add_path': "  1. Add path",
-        'remove_path': "  2. Remove path",
-        'save_exit': "  3. Save and exit",
-        'cancel_exit': "  4. Cancel and exit",
-        'enter_path': "Enter path to add:",
-        'path_added': "Added: {0}",
-        'path_invalid': "Path already exists or is invalid.",
-        'enter_number': "Enter number of path to remove:",
-        'removed': "Removed: {0}",
-        'invalid_number': "Invalid number.",
-        'numeric_required': "You must enter a number.",
-        'changes_saved': "Changes saved.",
-        'changes_cancelled': "Changes cancelled. Exiting.",
-        'install_start': "Starting installation...",
-        'install_complete': "Installation complete!",
-        'restart_claude': "Restart Claude desktop app to apply changes.",
-        'uninstall_start': "Starting uninstallation...",
-        'dir_deleted': "  - Directory deleted: {0}",
-        'config_deleted': "  - Configuration file deleted: {0}",
-        'uninstall_complete': "Uninstallation complete!",
-        'mcp_shop_title': "MCP Shop - Available Templates",
-        'available_mcps': "Available MCP templates:",
-        'install_mcp': "  1. Install selected MCP template",
-        'back_to_main': "  2. Back to main menu",
-        'mcp_shop_not_found': "MCP Shop directory not found.",
-        'no_mcps_available': "No MCP templates available.",
-        'mcp_not_found': "MCP template '{0}' not found.",
-        'installing_mcp': "Installing MCP template '{0}'...",
-        'config_updated': "Updated MCP server configuration for '{0}'",
-        'mcp_install_complete': "MCP template '{0}' installation complete",
-        'list_installed_mcps': "  4. List and manage installed MCPs",
-        'installed_mcps_title': "Installed MCPs",
-        'no_installed_mcps': "No MCPs are installed.",
-        'remove_mcp': "  1. Remove MCP",
-        'install_mcp_option': "  2. Install new MCP",
-        'select_mcp_remove': "Select the number of the MCP to remove",
-        'removing_mcp': "Removing MCP: {0}",
-        'mcp_removed': "MCP successfully removed: {0}",
-        'mcp_removal_failed': "Failed to remove MCP: {0}",
-        'no_mcps_to_remove': "No MCPs to remove.",
-        'remote_mcp_shop': "Remote MCP Shop",
-        'connecting_to_github': "Fetching MCP template list from GitHub repository...",
-        'github_connection_error': "GitHub connection error: {0}",
-        'downloading_mcp': "Downloading MCP template: {0}",
-        'download_complete': "Download complete: {0}",
-        'download_failed': "Download failed: {0}",
-        'local_remote_choice': "Select MCP source:",
-        'local_mcp_option': "  1. Local MCP Shop",
-        'remote_mcp_option': "  2. Remote MCP Shop (GitHub)",
-        'remote_mcp_refresh': "  3. Refresh remote MCP list"
-    }
-}
-
-def _(key, lang=DEFAULT_LANG):
+def _(key, lang=config.DEFAULT_LANG):
     """다국어 메시지 가져오기"""
-    return TEXTS.get(lang, TEXTS['en']).get(key, TEXTS['en'].get(key, key))
+    return config.TEXTS.get(lang, config.TEXTS['en']).get(key, config.TEXTS['en'].get(key, key))
 
 def clear_screen():
     """화면 지우기"""

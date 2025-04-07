@@ -1,0 +1,16 @@
+{
+    "servers": [
+        {
+            "name": "notion_py",
+            "command": ["python", "${MCP_DIR}/scripts/notion_mcp.py"],
+            "env": {
+                "NOTION_API_TOKEN": "${NOTION_API_TOKEN}"
+            },
+            "restart_policy": {
+                "max_restarts": 5,
+                "restart_delay": 2000
+            },
+            "stdio_format": "json"
+        }
+    ]
+} 

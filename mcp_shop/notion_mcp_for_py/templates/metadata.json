@@ -1,0 +1,64 @@
+{
+    "name": "Notion MCP (Python)",
+    "version": "1.0.0",
+    "description": "Python 기반 Notion MCP - 공식 Notion SDK와 notion2md를 활용한 Notion 통합",
+    "author": "Claude MCP Team",
+    "requires_authentication": true,
+    "authentication_guide": [
+        "1. Notion에서 통합 앱을 만드세요: https://www.notion.so/my-integrations",
+        "2. 통합 앱에 이름을 부여하고 생성하세요.",
+        "3. 생성된 '내부 통합 토큰'을 복사하세요.",
+        "4. 공유하려는 Notion 페이지/데이터베이스에서 오른쪽 상단의 '공유' 버튼을 클릭하세요.",
+        "5. '통합 초대'에서 만든 통합 앱을 선택하여 권한을 부여하세요."
+    ],
+    "authentication_token_name": "NOTION_API_TOKEN",
+    "authentication_token_prompt": "Notion 통합 토큰을 입력하세요:",
+    "requires_dependencies": true,
+    "dependencies": [
+        "notion-client",
+        "notion2md"
+    ],
+    "install_script": {
+        "windows": "install_dependencies.bat",
+        "linux": "install_dependencies.sh",
+        "macos": "install_dependencies.sh"
+    },
+    "supported_platforms": ["windows", "linux", "macos"],
+    "config_template": "notion_mcp_config_template.json",
+    "capabilities": [
+        "페이지 생성 및 관리",
+        "데이터베이스 쿼리 및 관리",
+        "Notion 페이지를 마크다운으로 내보내기",
+        "콘텐츠 조회 및 업데이트"
+    ],
+    "tools": [
+        {
+            "name": "notion_create_page",
+            "description": "Notion에 새 페이지를 생성합니다."
+        },
+        {
+            "name": "notion_save_content_to_page",
+            "description": "Notion 페이지에 내용을 저장합니다."
+        },
+        {
+            "name": "notion_query_database",
+            "description": "Notion 데이터베이스를 쿼리합니다."
+        },
+        {
+            "name": "notion_get_page",
+            "description": "Notion 페이지 정보를 조회합니다."
+        },
+        {
+            "name": "notion_get_page_content",
+            "description": "Notion 페이지 내용을 조회합니다."
+        },
+        {
+            "name": "notion_create_database",
+            "description": "Notion에 새 데이터베이스를 생성합니다."
+        },
+        {
+            "name": "notion_export_to_markdown",
+            "description": "Notion 페이지를 마크다운으로 내보냅니다."
+        }
+    ]
+} 
