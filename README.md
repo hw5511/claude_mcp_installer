@@ -7,6 +7,56 @@
 - **파일 시스템 접근**: Claude가 특정 디렉토리에 있는 파일을 읽고 쓸 수 있습니다.
 - **터미널 명령어 실행**: Claude가 시스템 명령어를 실행할 수 있습니다.
 - **허용 경로 설정**: 사용자가 Claude가 접근할 수 있는 경로를 지정할 수 있습니다.
+- **MCP Shop**: 다양한 MCP(Multi-Channel Processing) 템플릿을 설치하고 관리할 수 있습니다.
+
+## MCP Shop
+
+MCP Shop은 다양한 외부 서비스와 API를 Claude 데스크톱 애플리케이션에 연결할 수 있게 해주는 템플릿 모음입니다.
+
+### MCP Shop의 주요 기능
+
+- 다양한 MCP 템플릿 브라우징 및 설치
+- API 토큰이나 인증 정보가 필요한 서비스를 위한 가이드 제공
+- 사용자 환경에 맞춘 서비스 설정 자동화
+
+### 현재 제공되는 MCP 템플릿
+
+- **GitHub MCP**: GitHub API를 사용하여 저장소, 이슈, PR 등을 관리할 수 있습니다.
+- (더 많은 템플릿이 추가될 예정입니다)
+
+### MCP 템플릿 구조
+
+각 MCP 템플릿은 다음과 같은 구조로 구성됩니다:
+
+1. **Python 스크립트 파일**: MCP 기능을 구현하는 스크립트입니다.
+2. **설정 템플릿 파일**: Claude 데스크톱 설정에 추가할 서버 설정 정보입니다.
+3. **메타데이터 파일**: 템플릿에 대한 설명 및 인증 정보 등을 포함합니다.
+
+#### API 토큰이 필요한 MCP 템플릿
+
+GitHub MCP와 같이 외부 API 토큰이 필요한 템플릿의 경우:
+- 메타데이터 파일에 인증 가이드와 토큰 요구사항이 포함됩니다.
+- 설치 과정에서 토큰 입력을 요청하고 보안 가이드를 제공합니다.
+- 입력받은 토큰은 Claude 설정 파일에 안전하게 저장됩니다.
+
+#### API 토큰이 필요하지 않은 MCP 템플릿
+
+외부 API 토큰이 필요하지 않은 템플릿:
+- 별도의 인증 과정 없이 바로 설치가 가능합니다.
+- 로컬 파일 시스템이나 내장 기능만 사용하는 템플릿이 여기에 해당합니다.
+
+### 나만의 MCP 템플릿 만들기
+
+자신만의 MCP 템플릿을 만들려면:
+
+1. `mcp_shop` 디렉토리 안에 새 폴더 생성 (예: `my_custom_mcp`)
+2. 필요한 Python 스크립트 작성
+3. 설정 템플릿 파일 생성 (`*_config_template.json`)
+4. 메타데이터 파일 작성 (`metadata.json`)
+   - API 토큰이 필요한 경우 `requires_authentication: true` 설정
+   - 인증 가이드와 단계 정보 추가
+
+자세한 템플릿 개발 가이드는 향후 제공될 예정입니다.
 
 ## 설치 요구사항
 
@@ -95,6 +145,56 @@ This project is an installation program for extension scripts that provide addit
 - **File System Access**: Allows Claude to read and write files in specific directories.
 - **Terminal Command Execution**: Enables Claude to execute system commands.
 - **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Python Script File**: The script that implements the MCP functionality.
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary Python script
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+
+A detailed template development guide will be provided in the future.
 
 ## Installation Requirements
 
