@@ -1,10 +1,10 @@
 const { Client } = require("@notionhq/client");
-const notionToMd = require("notion-to-md");
+const { NotionToMarkdown } = require("notion-to-md");
 const base64 = require("base64-js");
 
 // 디버깅을 위한 오류 출력
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
+  console.error(JSON.stringify({ type: "error", message: `Uncaught exception: ${err.message}` }));
 });
 
 // 환경 변수에서 Notion API 토큰 가져오기
@@ -21,14 +21,12 @@ class MCP {
     this.name = name;
     this.tools = [];
     this._toolRegistry = {};
-    // 디버그 메시지를 JSON 형식으로 포맷팅
-    console.error(JSON.stringify({ debug: true, message: `MCP class initialized, name: ${name}` }));
+    console.error(JSON.stringify({ type: "debug", message: `MCP class initialized, name: ${name}` }));
   }
 
   registerTool(tool) {
     try {
-      // 디버그 메시지를 JSON 형식으로 포맷팅
-      console.error(JSON.stringify({ debug: true, message: `Registering tool: ${tool.name}` }));
+      console.error(JSON.stringify({ type: "debug", message: `Registering tool: ${tool.name}` }));
       this.tools.push(tool);
       this._toolRegistry[tool.name] = tool;
       
@@ -36,22 +34,22 @@ class MCP {
       try {
         if (typeof global !== 'undefined' && global.__register_tool) {
           global.__register_tool(tool);
-          console.error(JSON.stringify({ debug: true, message: `global.__register_tool success: ${tool.name}` }));
+          console.error(JSON.stringify({ type: "debug", message: `global.__register_tool success: ${tool.name}` }));
         } else {
-          console.error(JSON.stringify({ debug: true, message: 'global.__register_tool not found, using internal registry' }));
+          console.error(JSON.stringify({ type: "debug", message: 'global.__register_tool not found, using internal registry' }));
         }
       } catch (err) {
         // 오류 무시하고 계속 진행
-        console.error(JSON.stringify({ debug: true, message: `global.__register_tool error: ${err.message}` }));
+        console.error(JSON.stringify({ type: "debug", message: `global.__register_tool error: ${err.message}` }));
       }
     } catch (error) {
-      console.error(JSON.stringify({ debug: true, message: `Tool registration error: ${error}` }));
+      console.error(JSON.stringify({ type: "error", message: `Tool registration error: ${error}` }));
     }
   }
 
   start() {
-    console.info(`${this.name} MCP server starting...`);
-    console.error(JSON.stringify({ debug: true, message: `${this.name} MCP server registered tools: ${this.tools.length}` }));
+    console.error(JSON.stringify({ type: "info", message: `${this.name} MCP server starting...` }));
+    console.error(JSON.stringify({ type: "debug", message: `${this.name} MCP server registered tools: ${this.tools.length}` }));
     
     // 아래 간단한 서버 모킹은 Claude 데스크톱에 필요하지 않지만, 
     // 독립 실행 시 이 코드가 실행될 수 있도록 기본 구현 제공
@@ -60,9 +58,9 @@ class MCP {
         process.on('message', (message) => {
           try {
             if (message && message.jsonrpc === '2.0') {
-              console.error(JSON.stringify({ debug: true, message: `Message received: ${message.method || 'no method'}` }));
+              console.error(JSON.stringify({ type: "debug", message: `Message received: ${message.method || 'no method'}` }));
               if (message.method === 'initialize') {
-                console.error(JSON.stringify({ debug: true, message: 'Sending initialize response' }));
+                console.error(JSON.stringify({ type: "debug", message: 'Sending initialize response' }));
                 process.send({
                   jsonrpc: '2.0',
                   id: message.id,
@@ -74,12 +72,12 @@ class MCP {
               // 다른 메서드 처리...
             }
           } catch (err) {
-            console.error(JSON.stringify({ debug: true, message: `Message processing error: ${err}` }));
+            console.error(JSON.stringify({ type: "error", message: `Message processing error: ${err}` }));
           }
         });
       }
     } catch (err) {
-      console.error(JSON.stringify({ debug: true, message: `Message handler setup error: ${err}` }));
+      console.error(JSON.stringify({ type: "error", message: `Message handler setup error: ${err}` }));
     }
     
     return Promise.resolve();
@@ -89,24 +87,24 @@ class MCP {
 // 초기화 함수
 function initializeClient() {
   if (!NOTION_API_TOKEN) {
-    console.error(JSON.stringify({ debug: true, message: 'NOTION_API_TOKEN environment variable is not set.' }));
+    console.error(JSON.stringify({ type: "error", message: 'NOTION_API_TOKEN environment variable is not set.' }));
     return false;
   }
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    n2m = new notionToMd.NotionToMd({ notionClient: notion });
-    console.error(JSON.stringify({ debug: true, message: 'Notion client initialized successfully' }));
+    n2m = new NotionToMarkdown({ notionClient: notion });
+    console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
   } catch (error) {
-    console.error(JSON.stringify({ debug: true, message: `Notion client initialization error: ${error}` }));
+    console.error(JSON.stringify({ type: "error", message: `Notion client initialization error: ${error}` }));
     return false;
   }
 }
 
 // MCP 서버 초기화
 const mcp = new MCP("notion");
-console.info("Initializing server...");
+console.error(JSON.stringify({ type: "info", message: "Initializing server..." }));
 
 // 응답 처리 함수
 async function formatResponse(data, format = 'json') {
@@ -557,32 +555,32 @@ mcp.registerTool({
 
 // 서버 시작
 mcp.start().then(() => {
-  console.info("Server started and connected successfully");
-  console.error(JSON.stringify({ debug: true, message: "Server start successful" }));
+  console.error(JSON.stringify({ type: "info", message: "Server started and connected successfully" }));
+  console.error(JSON.stringify({ type: "debug", message: "Server start successful" }));
   
   try {
     // Notion 클라이언트 초기화
     if (!NOTION_API_TOKEN) {
-      console.error(JSON.stringify({ debug: true, message: "NOTION_API_TOKEN is not set. Please check your environment variables." }));
+      console.error(JSON.stringify({ type: "error", message: "NOTION_API_TOKEN is not set. Please check your environment variables." }));
     } else {
       initializeClient();
     }
     
     // 서버가 종료되지 않도록 유지
-    console.error(JSON.stringify({ debug: true, message: "Activating server keep-alive mode" }));
+    console.error(JSON.stringify({ type: "debug", message: "Activating server keep-alive mode" }));
     const interval = setInterval(() => {
-      console.error(JSON.stringify({ debug: true, message: "Server running..." }));
+      console.error(JSON.stringify({ type: "debug", message: "Server running..." }));
     }, 30000);
     
     // 정상적인 종료 처리
     process.on('SIGINT', () => {
-      console.error(JSON.stringify({ debug: true, message: 'SIGINT signal received, shutting down gracefully...' }));
+      console.error(JSON.stringify({ type: "debug", message: 'SIGINT signal received, shutting down gracefully...' }));
       clearInterval(interval);
       process.exit(0);
     });
     
     process.on('SIGTERM', () => {
-      console.error(JSON.stringify({ debug: true, message: 'SIGTERM signal received, shutting down gracefully...' }));
+      console.error(JSON.stringify({ type: "debug", message: 'SIGTERM signal received, shutting down gracefully...' }));
       clearInterval(interval);
       process.exit(0);
     });
@@ -593,8 +591,8 @@ mcp.start().then(() => {
     }
     
   } catch (err) {
-    console.error(JSON.stringify({ debug: true, message: `Initialization error: ${err}` }));
+    console.error(JSON.stringify({ type: "error", message: `Initialization error: ${err}` }));
   }
 }).catch(err => {
-  console.error(JSON.stringify({ debug: true, message: `MCP server start error: ${err}` }));
+  console.error(JSON.stringify({ type: "error", message: `MCP server start error: ${err}` }));
 });
