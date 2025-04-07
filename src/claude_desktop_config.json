@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "python",
+      "args": [
+        "{MCP_SCRIPTS_DIR}/filesystem.py"
+      ]
+    },
+    "terminal": {
+      "command": "python",
+      "args": [
+        "{MCP_SCRIPTS_DIR}/terminal.py"
+      ]
+    },
+    "allowed_dirs_manager": {
+      "command": "python",
+      "args": [
+        "{MCP_SCRIPTS_DIR}/allowed_dirs_manager.py"
+      ]
+    }
+  }
+}
