@@ -22,6 +22,7 @@ init()
 
 # 전역 언어 설정
 LANG = config.DEFAULT_LANG
+TEXTS = config.TEXTS
 
 def _(key, lang=config.DEFAULT_LANG):
     """다국어 메시지 가져오기"""
