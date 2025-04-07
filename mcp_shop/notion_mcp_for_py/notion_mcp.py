@@ -3,15 +3,23 @@
 
 """
 Notion MCP for Python
+=====================
+
 클라우드 데스크톱 앱을 위한 Notion MCP (Python 버전)
 공식 Notion SDK와 notion2md 라이브러리를 사용하여 Notion 페이지를 관리하고 마크다운으로 변환합니다.
+
+주요 기능:
+- Notion 페이지 및 데이터베이스 조회/생성/수정/삭제
+- 블록 관리
+- 사용자 및 댓글 관리
+- 마크다운 변환
 """
 
 import os
 import sys
 import json
 import logging
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Callable
 from functools import wraps
 
 # 서드파티 라이브러리
@@ -41,6 +49,17 @@ def json_print(*args, **kwargs):
 
 # print 함수 오버라이드
 print = json_print
+
+# 함수 별칭 생성 유틸리티 함수
+def create_alias(original_func: Callable) -> Callable:
+    """
+    원본 함수의 별칭을 생성합니다.
+    별칭은 원본 함수와 동일한 동작을 수행하지만 다른 이름으로 접근할 수 있습니다.
+    """
+    @wraps(original_func)
+    def alias(*args, **kwargs):
+        return original_func(*args, **kwargs)
+    return alias
 
 class NotionMCP:
     """Notion MCP 메인 클래스"""
@@ -102,6 +121,30 @@ class NotionMCP:
         except Exception as e:
             self.error_print(f"도구 등록 오류: {str(e)}")
     
+    def register_notion_tool(self, name, description, handler, parameters=None):
+        """
+        더 간결한 Notion 도구 등록 메서드
+        
+        Args:
+            name (str): 도구 이름 ('notion_' 접두사는 자동으로 추가됨)
+            description (str): 도구 설명
+            handler (callable): 도구 핸들러 함수
+            parameters (dict): 도구 매개변수 정의
+        """
+        if not name.startswith("notion_"):
+            name = f"notion_{name}"
+            
+        tool = {
+            "name": name,
+            "description": description,
+            "handler": handler
+        }
+        
+        if parameters:
+            tool["parameters"] = parameters
+        
+        self.register_tool(tool)
+    
     def start(self):
         """MCP 서버 시작"""
         self.info_print(f"{self.name} MCP 서버 시작 중...")
@@ -110,6 +153,16 @@ class NotionMCP:
 
 # MCP 도구 핸들러 데코레이터
 def mcp_handler(func):
+    """
+    MCP 도구 핸들러를 위한 데코레이터
+    함수 실행 중 발생하는 예외를 안전하게 처리하고 일관된 오류 형식을 반환합니다.
+    
+    Args:
+        func (callable): 래핑할 대상 함수
+        
+    Returns:
+        callable: 래핑된 함수
+    """
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -198,8 +251,8 @@ def query_database(database_id, filter=None, sorts=None, start_cursor=None, page
 
 # 페이지 정보 조회 도구
 @mcp_handler
-def get_page(page_id, format="json"):
-    """Notion 페이지 정보 조회"""
+def retrieve_page(page_id, format="json"):
+    """Notion 페이지 정보를 조회합니다."""
     if not mcp.notion:
         return {"error": "Notion 클라이언트가 초기화되지 않았습니다."}
     
@@ -209,10 +262,13 @@ def get_page(page_id, format="json"):
     except Exception as e:
         return {"error": str(e)}
 
+# 별칭으로 처리
+get_page = create_alias(retrieve_page)
+
 # 페이지 내용 조회 도구
 @mcp_handler
-def get_page_content(page_id, start_cursor=None, page_size=None, format="json"):
-    """Notion 페이지 내용 조회"""
+def retrieve_page_content(page_id, start_cursor=None, page_size=None, format="json"):
+    """Notion 페이지의 내용을 조회합니다."""
     if not mcp.notion:
         return {"error": "Notion 클라이언트가 초기화되지 않았습니다."}
     
@@ -230,6 +286,9 @@ def get_page_content(page_id, start_cursor=None, page_size=None, format="json"):
         return format_response(response, format)
     except Exception as e:
         return {"error": str(e)}
+
+# 별칭으로 처리
+get_page_content = create_alias(retrieve_page_content)
 
 # 데이터베이스 생성 도구
 @mcp_handler
@@ -302,6 +361,9 @@ def append_block_children(block_id, children, format="json"):
         return format_response(response, format)
     except Exception as e:
         return {"error": str(e)}
+
+# 별칭 정의 - 함수명 표준화를 위해
+add_block_children = create_alias(append_block_children)
 
 # 블록 정보 조회 도구
 @mcp_handler
@@ -423,6 +485,9 @@ def create_database_item(database_id, properties, icon=None, cover=None, childre
     except Exception as e:
         return {"error": str(e)}
 
+# 별칭 정의 - 함수명 표준화를 위해
+add_database_item = create_alias(create_database_item)
+
 # Notion 검색 도구
 @mcp_handler
 def search(query=None, filter=None, sort=None, start_cursor=None, page_size=None, format="json"):
@@ -449,6 +514,9 @@ def search(query=None, filter=None, sort=None, start_cursor=None, page_size=None
     except Exception as e:
         return {"error": str(e)}
 
+# 별칭 정의 - 함수명 표준화를 위해
+find_notion_content = create_alias(search)
+
 # 모든 사용자 목록 조회 도구
 @mcp_handler
 def list_all_users(start_cursor=None, page_size=None, format="json"):
@@ -468,6 +536,9 @@ def list_all_users(start_cursor=None, page_size=None, format="json"):
         return format_response(response, format)
     except Exception as e:
         return {"error": str(e)}
+
+# 별칭 정의 - 함수명 표준화를 위해
+get_all_users = create_alias(list_all_users)
 
 # 사용자 정보 조회 도구
 @mcp_handler
@@ -494,6 +565,9 @@ def retrieve_bot_user(format="json"):
         return format_response(response, format)
     except Exception as e:
         return {"error": str(e)}
+
+# 별칭 정의 - 함수명 표준화를 위해
+get_bot_user = create_alias(retrieve_bot_user)
 
 # 댓글 생성 도구
 @mcp_handler
@@ -547,7 +621,7 @@ def retrieve_comments(block_id, start_cursor=None, page_size=None, format="json"
 
 # 응답 형식 지정 함수
 def format_response(data, format="json"):
-    """응답 데이터 형식 지정"""
+    """응답 데이터의 형식을 지정합니다."""
     if format == "markdown" and data:
         try:
             # 마크다운 변환 로직
@@ -673,7 +747,7 @@ mcp.register_tool({
             "required": False
         }
     },
-    "handler": get_page
+    "handler": retrieve_page
 })
 
 mcp.register_tool({
@@ -701,7 +775,7 @@ mcp.register_tool({
             "required": False
         }
     },
-    "handler": get_page_content
+    "handler": retrieve_page_content
 })
 
 mcp.register_tool({
@@ -862,7 +936,7 @@ mcp.register_tool({
             "required": False
         }
     },
-    "handler": get_page  # 기존 get_page 핸들러 사용
+    "handler": retrieve_page
 })
 
 mcp.register_tool({
