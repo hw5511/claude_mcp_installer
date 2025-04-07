@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Notion API와 통신하여 Claude가 Notion 문서와 데이터베이스를 관리할 수 있게 합니다.",
   "requires_authentication": true,
+  "reference": {
+    "repository": "https://github.com/suekou/mcp-notion-server",
+    "author": "suekou",
+    "license": "MIT"
+  },
   "auth_guide": {
     "ko": {
       "title": "Notion API 인증 설정",
