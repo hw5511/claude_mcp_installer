@@ -308,41 +308,29 @@ def install_mcp_template(mcp_name, mcp_dir=None):
             
             # 인증이 필요한 경우
             if metadata.get('requires_authentication', False):
-                auth_guide = metadata.get('auth_guide', {}).get(LANG, metadata.get('auth_guide', {}).get('en', {}))
+                # 기존 auth_guide 처리 코드 대신 authentication_guide 사용
+                auth_guides = metadata.get('authentication_guide', [])
+                token_name = metadata.get('authentication_token_name', '')
+                token_prompt = metadata.get('authentication_token_prompt', '인증 정보를 입력하세요')
                 
                 # 인증 가이드 표시
                 clear_screen()
-                print(f"\n===== {auth_guide.get('title', '인증 설정')} =====")
-                print(f"\n{auth_guide.get('description', '')}")
+                print(f"\n===== {metadata.get('name', '인증 설정')} 인증 설정 =====")
+                print(f"\n{metadata.get('description', '')}")
                 
-                # 토큰 타입 정보가 있는 경우 표시
-                if 'token_type_info' in auth_guide:
-                    print(f"\n{auth_guide.get('token_type_info', '')}")
-                
-                # 설정 단계 표시
-                if 'steps' in auth_guide:
-                    print("\n설정 단계:")
-                    for i, step in enumerate(auth_guide.get('steps', []), 1):
-                        print(f"  {i}. {step}")
-                
-                # 보안 참고사항 표시
-                if 'security_notes' in auth_guide:
-                    print("\n보안 참고사항:")
-                    for note in auth_guide.get('security_notes', []):
-                        print(f"  - {note}")
-                
-                # 문서 링크가 있는 경우 표시
-                if 'documentation_link' in auth_guide:
-                    print(f"\n추가 정보: {auth_guide.get('documentation_link')}")
+                # 인증 가이드 단계 표시
+                if auth_guides:
+                    print("\n인증 설정 단계:")
+                    for i, step in enumerate(auth_guides, 1):
+                        print(f"  {step}")
                 
                 # 토큰/API 키 입력 받기
                 print("\n")  # 공백 추가
-                token_value = input(auth_guide.get('input_prompt', '인증 정보를 입력하세요') + ": ").strip()
+                token_value = input(f"{token_prompt}: ").strip()
                 
                 if token_value:
-                    env_var_name = auth_guide.get('env_var_name', '')
-                    if env_var_name:
-                        auth_tokens[env_var_name] = token_value
+                    if token_name:
+                        auth_tokens[token_name] = token_value
                 else:
                     print("인증 정보를 입력하지 않아 설치를 취소합니다.")
                     return
@@ -430,7 +418,7 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                                     # 토큰 플레이스홀더 교체
                                     env_value = server_config['env'][env_var]
                                     # ${변수명} 형식 지원 추가
-                                    if isinstance(env_value, str) and (env_value == env_var or env_value == f"${{{env_var}}}"):
+                                    if isinstance(env_value, str) and (env_value == env_var or env_value == f"${{{env_var}}}" or env_value == f"{env_var}"):
                                         server_config['env'][env_var] = token
                         
                         # 기존 설정에 추가

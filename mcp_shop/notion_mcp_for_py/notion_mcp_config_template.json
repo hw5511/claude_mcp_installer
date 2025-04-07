@@ -3,7 +3,7 @@
         "command": "python",
         "args": ["{MCP_SCRIPTS_DIR}/notion_mcp.py"],
         "env": {
-            "NOTION_API_TOKEN": "NOTION_API_TOKEN"
+            "NOTION_API_TOKEN": "${NOTION_API_TOKEN}"
         },
         "restart_policy": {
             "max_restarts": 5,
