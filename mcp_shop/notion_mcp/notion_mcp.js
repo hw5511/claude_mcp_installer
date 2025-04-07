@@ -1,12 +1,13 @@
 const { Client } = require("@notionhq/client");
-// 알파 버전의 올바른 패키지 API를 사용
-const notionToMd = require("notion-to-md");
-const base64 = require("base64-js");
 
-// 모든 콘솔 출력을 가로채서 JSON 형식으로 변환
+// 원본 콘솔 기능 저장 (다른 코드보다 먼저)
 const originalConsoleError = console.error;
 const originalConsoleLog = console.log;
 const originalConsoleInfo = console.info;
+
+// 알파 버전의 올바른 패키지 API를 사용
+const notionToMd = require("notion-to-md");
+const base64 = require("base64-js");
 
 // 객체가 출력되는 것을 방지하기 위한 안전한 출력 함수
 function safeStringify(obj) {
@@ -86,6 +87,13 @@ console.info = function(...args) {
   originalConsoleInfo(JSON.stringify({ type: "info", message: safeArgs.join(' ') }));
 };
 
+// 노션투마크다운 내부 로깅 방지를 위한 설정
+const originalConsole = {
+  log: console.log,
+  error: console.error,
+  info: console.info
+};
+
 // 디버깅을 위한 오류 출력
 process.on('uncaughtException', (err) => {
   console.error(`Uncaught exception: ${err.message}`);
@@ -98,27 +106,6 @@ const MARKDOWN_CONVERSION = process.env.NOTION_MARKDOWN_CONVERSION === "true";
 // Notion 클라이언트 초기화
 let notion;
 let n2m;
-
-// 노션투마크다운 내부 로깅 방지를 위한 설정
-const originalConsole = {
-  log: console.log,
-  error: console.error,
-  info: console.info
-};
-
-// 노션투마크다운 라이브러리가 직접 로깅하는 것을 방지하기 위한 임시 함수
-function silenceConsole() {
-  console.log = function() {};
-  console.error = function() {};
-  console.info = function() {};
-}
-
-// 콘솔 원래 상태로 복원
-function restoreConsole() {
-  console.log = originalConsoleLog;
-  console.error = originalConsoleError;
-  console.info = originalConsoleInfo;
-}
 
 // MCP 클래스 정의 (Claude 데스크톱 호환용)
 class MCP {
@@ -198,14 +185,8 @@ function initializeClient() {
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    
-    // NotionConverter 객체 생성 시 콘솔에 직접 출력되지 않도록 수정
-    silenceConsole(); // 콘솔 출력 일시적으로 비활성화
-    try {
-      n2m = new notionToMd.NotionConverter({ notionClient: notion });
-    } finally {
-      restoreConsole(); // 콘솔 출력 복원
-    }
+    // NotionConverter 객체 생성 시 콘솔 조작을 제거하고 직접 초기화
+    n2m = new notionToMd.NotionConverter({ notionClient: notion });
     
     console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
@@ -229,10 +210,9 @@ async function formatResponse(data, format = 'json') {
         for (const item of data) {
           if (item.object === 'page') {
             try {
-              silenceConsole(); // 콘솔 출력 일시적으로 비활성화
+              // 콘솔 조작 없이 직접 마크다운 변환 실행
               const mdBlocks = await n2m.pageToMarkdown(item.id);
               const mdString = n2m.toMarkdownString(mdBlocks);
-              restoreConsole(); // 콘솔 출력 복원
               
               markdownResults.push({
                 id: item.id,
@@ -240,7 +220,6 @@ async function formatResponse(data, format = 'json') {
                 content: mdString.parent
               });
             } catch (err) {
-              restoreConsole(); // 에러 발생 시에도 콘솔 출력 복원
               console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
               markdownResults.push(item);
             }
@@ -252,10 +231,9 @@ async function formatResponse(data, format = 'json') {
       } else if (data.object === 'page') {
         // 단일 페이지인 경우
         try {
-          silenceConsole(); // 콘솔 출력 일시적으로 비활성화
+          // 콘솔 조작 없이 직접 마크다운 변환 실행
           const mdBlocks = await n2m.pageToMarkdown(data.id);
           const mdString = n2m.toMarkdownString(mdBlocks);
-          restoreConsole(); // 콘솔 출력 복원
           
           return {
             id: data.id,
@@ -263,7 +241,6 @@ async function formatResponse(data, format = 'json') {
             content: mdString.parent
           };
         } catch (err) {
-          restoreConsole(); // 에러 발생 시에도 콘솔 출력 복원
           console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
           return data;
         }
@@ -272,10 +249,9 @@ async function formatResponse(data, format = 'json') {
         const results = await Promise.all(data.results.map(async (item) => {
           if (item.object === 'page') {
             try {
-              silenceConsole(); // 콘솔 출력 일시적으로 비활성화
+              // 콘솔 조작 없이 직접 마크다운 변환 실행
               const mdBlocks = await n2m.pageToMarkdown(item.id);
               const mdString = n2m.toMarkdownString(mdBlocks);
-              restoreConsole(); // 콘솔 출력 복원
               
               return {
                 id: item.id,
@@ -283,7 +259,6 @@ async function formatResponse(data, format = 'json') {
                 content: mdString.parent
               };
             } catch (error) {
-              restoreConsole(); // 에러 발생 시에도 콘솔 출력 복원
               console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${error.message || String(error)}` }));
               return item;
             }
@@ -296,7 +271,6 @@ async function formatResponse(data, format = 'json') {
         };
       }
     } catch (error) {
-      restoreConsole(); // 에러 발생 시에도 콘솔 출력 복원
       // 오류 출력도 JSON 형식으로 변경
       console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${error.message || String(error)}` }));
     }
