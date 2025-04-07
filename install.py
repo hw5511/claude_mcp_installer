@@ -75,7 +75,17 @@ TEXTS = {
         'mcp_not_found': "{0} MCP 템플릿을 찾을 수 없습니다.",
         'installing_mcp': "선택한 {0} MCP 템플릿을 설치하는 중...",
         'config_updated': "{0} MCP 서버 설정 업데이트 완료",
-        'mcp_install_complete': "{0} MCP 템플릿 설치 완료"
+        'mcp_install_complete': "{0} MCP 템플릿 설치 완료",
+        'list_installed_mcps': "  4. 설치된 MCP 목록 확인 및 관리",
+        'installed_mcps_title': "설치된 MCP 목록",
+        'no_installed_mcps': "설치된 MCP가 없습니다.",
+        'remove_mcp': "  1. MCP 제거",
+        'install_mcp_option': "  2. 새 MCP 설치",
+        'select_mcp_remove': "제거할 MCP 번호를 선택하세요",
+        'removing_mcp': "MCP 제거 중: {0}",
+        'mcp_removed': "MCP가 성공적으로 제거되었습니다: {0}",
+        'mcp_removal_failed': "MCP 제거 실패: {0}",
+        'no_mcps_to_remove': "제거할 MCP가 없습니다."
     },
     'en': {
         'banner_title': "Claude Extension Script Installer",
@@ -132,7 +142,17 @@ TEXTS = {
         'mcp_not_found': "MCP template '{0}' not found.",
         'installing_mcp': "Installing MCP template '{0}'...",
         'config_updated': "Updated MCP server configuration for '{0}'",
-        'mcp_install_complete': "MCP template '{0}' installation complete"
+        'mcp_install_complete': "MCP template '{0}' installation complete",
+        'list_installed_mcps': "  4. List and manage installed MCPs",
+        'installed_mcps_title': "Installed MCPs",
+        'no_installed_mcps': "No MCPs are installed.",
+        'remove_mcp': "  1. Remove MCP",
+        'install_mcp_option': "  2. Install new MCP",
+        'select_mcp_remove': "Select the number of the MCP to remove",
+        'removing_mcp': "Removing MCP: {0}",
+        'mcp_removed': "MCP successfully removed: {0}",
+        'mcp_removal_failed': "Failed to remove MCP: {0}",
+        'no_mcps_to_remove': "No MCPs to remove."
     }
 }
 
@@ -502,11 +522,12 @@ def show_menu(installed=False):
         print(TEXTS[LANG]['option_reinstall'])
         print(TEXTS[LANG]['option_manage_dirs'])
         print(f"  3. {TEXTS[LANG]['mcp_shop_title']}")
-        print(TEXTS[LANG]['option_exit'])
+        print(TEXTS[LANG]['list_installed_mcps'])
+        print(f"  5. {TEXTS[LANG]['option_exit']}")
         
         while True:
             try:
-                choice = input(f"{TEXTS[LANG]['select']} (1-4): ")
+                choice = input(f"{TEXTS[LANG]['select']} (1-5): ")
                 if choice == '1':
                     return 1
                 elif choice == '2':
@@ -514,6 +535,8 @@ def show_menu(installed=False):
                 elif choice == '3':
                     return 3
                 elif choice == '4':
+                    return 4
+                elif choice == '5':
                     return 0
                 else:
                     print(TEXTS[LANG]['invalid_choice'])
@@ -548,6 +571,119 @@ def parse_args():
     parser.add_argument("--dirs", "-d", action="store_true",
                       help="허용 디렉토리 관리 / Manage allowed directories")
     return parser.parse_args()
+
+def get_installed_mcps():
+    """설치된 MCP 목록을 가져오는 함수"""
+    config_path = os.path.join(os.environ['APPDATA'], 'Claude', 'claude_desktop_config.json')
+    
+    if not os.path.exists(config_path):
+        return []
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        # 기본 MCP(filesystem, terminal)를 제외한 목록 반환
+        installed_mcps = []
+        if 'mcpServers' in config:
+            for server_name, server_config in config['mcpServers'].items():
+                if server_name not in ['filesystem', 'terminal']:
+                    installed_mcps.append({
+                        'name': server_name,
+                        'config': server_config
+                    })
+        
+        return installed_mcps
+    except Exception as e:
+        print(f"설정 파일 읽기 오류: {str(e)}")
+        return []
+
+def remove_mcp(mcp_name):
+    """MCP를 제거하는 함수"""
+    config_path = os.path.join(os.environ['APPDATA'], 'Claude', 'claude_desktop_config.json')
+    
+    if not os.path.exists(config_path):
+        return False
+    
+    try:
+        # 설정 파일 읽기
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        # MCP 서버 설정에서 제거
+        if 'mcpServers' in config and mcp_name in config['mcpServers']:
+            del config['mcpServers'][mcp_name]
+            
+            # 변경된 설정 저장
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2)
+            
+            return True
+        
+        return False
+    except Exception as e:
+        print(f"MCP 제거 오류: {str(e)}")
+        return False
+
+def list_and_manage_mcps():
+    """설치된 MCP 목록을 표시하고 관리하는 함수"""
+    while True:
+        clear_screen()
+        print(f"\n{TEXTS[LANG]['installed_mcps_title']}")
+        print("-" * 40)
+        
+        # 설치된 MCP 목록 가져오기
+        installed_mcps = get_installed_mcps()
+        
+        if not installed_mcps:
+            print(TEXTS[LANG]['no_installed_mcps'])
+            print("\n" + TEXTS[LANG]['options'])
+            print(TEXTS[LANG]['install_mcp_option'])
+            print(TEXTS[LANG]['back_to_main'])
+            
+            choice = input(f"\n{TEXTS[LANG]['select']} (1-2): ")
+            
+            if choice == '1':
+                browse_mcp_shop()
+            elif choice == '2':
+                break
+            else:
+                print(TEXTS[LANG]['invalid_choice'])
+        else:
+            # MCP 목록 표시
+            for i, mcp in enumerate(installed_mcps, 1):
+                print(f"  {i}. {mcp['name']}")
+            
+            print("\n" + TEXTS[LANG]['options'])
+            print(TEXTS[LANG]['remove_mcp'])
+            print(TEXTS[LANG]['install_mcp_option'])
+            print(TEXTS[LANG]['back_to_main'])
+            
+            choice = input(f"\n{TEXTS[LANG]['select']} (1-3): ")
+            
+            if choice == '1':
+                if installed_mcps:
+                    mcp_idx = input(f"{TEXTS[LANG]['select_mcp_remove']} (1-{len(installed_mcps)}): ")
+                    if mcp_idx.isdigit() and 1 <= int(mcp_idx) <= len(installed_mcps):
+                        mcp_to_remove = installed_mcps[int(mcp_idx)-1]['name']
+                        print(TEXTS[LANG]['removing_mcp'].format(mcp_to_remove))
+                        if remove_mcp(mcp_to_remove):
+                            print(TEXTS[LANG]['mcp_removed'].format(mcp_to_remove))
+                        else:
+                            print(TEXTS[LANG]['mcp_removal_failed'].format(mcp_to_remove))
+                        input("\nPress Enter to continue...")
+                    else:
+                        print(TEXTS[LANG]['invalid_choice'])
+                        input("\nPress Enter to continue...")
+                else:
+                    print(TEXTS[LANG]['no_mcps_to_remove'])
+                    input("\nPress Enter to continue...")
+            elif choice == '2':
+                browse_mcp_shop()
+            elif choice == '3':
+                break
+            else:
+                print(TEXTS[LANG]['invalid_choice'])
 
 def main():
     global LANG
@@ -584,6 +720,9 @@ def main():
     elif choice == 3:
         # MCP Shop functionality
         browse_mcp_shop()
+    elif choice == 4:
+        # List and manage installed MCPs
+        list_and_manage_mcps()
 
 if __name__ == "__main__":
     main() 
