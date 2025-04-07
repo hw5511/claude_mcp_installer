@@ -1,0 +1,14 @@
+{
+  "name": "notion-mcp-server",
+  "version": "1.0.0",
+  "description": "Notion MCP Server for Claude Desktop",
+  "main": "notion_mcp.js",
+  "scripts": {
+    "start": "node notion_mcp.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/core": "^1.0.0",
+    "@notionhq/client": "^2.2.14",
+    "notion-to-md": "^3.1.1"
+  }
+} 

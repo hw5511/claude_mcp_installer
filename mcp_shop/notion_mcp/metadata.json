@@ -1,0 +1,81 @@
+{
+  "name": "Notion MCP",
+  "description": "Notion API를 사용하여 페이지 생성, 데이터베이스 쿼리 등을 수행할 수 있는 MCP 서버",
+  "version": "1.0.0",
+  "requires_authentication": true,
+  "auth_type": "token",
+  "requires_nodejs": true,
+  "nodejs_guide": {
+    "ko": {
+      "title": "Node.js 설치 필요",
+      "description": "Notion MCP 서버를 실행하려면 Node.js가 설치되어 있어야 합니다.",
+      "steps": [
+        "Node.js 공식 웹사이트에서 LTS 버전을 다운로드하여 설치합니다: https://nodejs.org/",
+        "설치 후 시스템을 재시작합니다.",
+        "설치가 완료되면 다시 Notion MCP 설치를 시도하세요."
+      ],
+      "download_link": "https://nodejs.org/"
+    },
+    "en": {
+      "title": "Node.js Installation Required",
+      "description": "Node.js must be installed to run the Notion MCP server.",
+      "steps": [
+        "Download and install Node.js LTS version from the official website: https://nodejs.org/",
+        "Restart your system after installation.",
+        "Once installation is complete, try installing Notion MCP again."
+      ],
+      "download_link": "https://nodejs.org/"
+    }
+  },
+  "auth_guide": {
+    "ko": {
+      "title": "Notion API 토큰 설정",
+      "description": "Notion MCP 서버는 Notion API를 사용하기 위해 통합(Integration) 토큰이 필요합니다.",
+      "steps": [
+        "Notion 웹사이트에 로그인하세요.",
+        "https://www.notion.so/my-integrations 페이지로 이동하세요.",
+        "'+ New integration' 버튼을 클릭하세요.",
+        "통합 이름을 입력하고 연결할 워크스페이스를 선택하세요.",
+        "Type은 'Internal'(기본값)로 두세요.",
+        "통합이 생성되면 세부 정보 페이지에서 'Show' → 'Copy' 버튼을 클릭하여 토큰을 복사하세요.",
+        "이 토큰을 안전한 곳에 저장하세요.",
+        "토큰 생성 후, Notion 페이지에서 우측 상단의 '...' 메뉴를 클릭하고 'Add connections'를 선택한 다음 방금 생성한 통합을 선택하여 연결하세요."
+      ],
+      "security_notes": [
+        "토큰은 비밀번호와 같이 취급하세요. 절대 공개 저장소에 저장하거나 코드에 하드코딩하지 마세요.",
+        "토큰이 노출되었다고 의심되면 즉시 삭제하고 새로 발급하세요."
+      ],
+      "documentation_link": "https://developers.notion.com/docs/authorization",
+      "input_prompt": "Notion API 토큰을 입력하세요",
+      "env_var_name": "NOTION_API_TOKEN"
+    },
+    "en": {
+      "title": "Notion API Token Setup",
+      "description": "Notion MCP server requires an Integration token to use the Notion API.",
+      "steps": [
+        "Log in to the Notion website.",
+        "Go to https://www.notion.so/my-integrations page.",
+        "Click on '+ New integration' button.",
+        "Enter an integration name and select the workspace to connect to.",
+        "Keep the Type as 'Internal' (default).",
+        "Once the integration is created, on its details page, click 'Show' → 'Copy' to copy the token.",
+        "Store this token in a secure location.",
+        "After creating the token, on your Notion page, click the '...' menu in the upper-right corner, select 'Add connections', and choose your newly created integration."
+      ],
+      "security_notes": [
+        "Treat tokens like passwords. Never store them in public repositories or hardcode them in your code.",
+        "If you suspect a token has been exposed, delete it immediately and generate a new one."
+      ],
+      "documentation_link": "https://developers.notion.com/docs/authorization",
+      "input_prompt": "Enter your Notion API token",
+      "env_var_name": "NOTION_API_TOKEN"
+    }
+  },
+  "features": [
+    "Notion 페이지 생성 및 수정",
+    "데이터베이스 쿼리 및 필터링",
+    "페이지 내용 검색",
+    "새 페이지에 콘텐츠 저장",
+    "데이터베이스의 항목 관리"
+  ]
+} 
