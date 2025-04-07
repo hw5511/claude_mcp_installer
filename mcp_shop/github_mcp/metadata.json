@@ -1,0 +1,71 @@
+{
+  "name": "GitHub MCP",
+  "description": "GitHub API를 사용하여 저장소, 이슈, PR 등을 관리할 수 있는 MCP 서버",
+  "version": "1.0.0",
+  "requires_authentication": true,
+  "auth_type": "token",
+  "auth_guide": {
+    "ko": {
+      "title": "GitHub 개인 액세스 토큰 설정",
+      "description": "GitHub MCP 서버는 GitHub API를 사용하기 위해 개인 액세스 토큰이 필요합니다.",
+      "token_type_info": "GitHub는 두 가지 유형의 개인 액세스 토큰을 제공합니다: 세분화된 개인 액세스 토큰(fine-grained personal access token)과 일반 개인 액세스 토큰(personal access token classic). 보안상 세분화된 토큰(fine-grained token)을 사용하는 것을 권장합니다.",
+      "steps": [
+        "GitHub 계정에 로그인하세요.",
+        "오른쪽 상단 프로필 사진을 클릭하고 Settings를 선택하세요.",
+        "왼쪽 사이드바에서 Developer settings를 클릭하세요.",
+        "Personal access tokens 메뉴에서 Fine-grained tokens를 선택하세요.",
+        "Generate new token 버튼을 클릭하세요.",
+        "토큰 이름, 만료일, 설명을 입력하세요 (보안을 위해 단기간 만료 설정 권장).",
+        "Resource owner에서 토큰이 접근할 계정이나 조직을 선택하세요.",
+        "Repository access에서 필요한 저장소 접근 범위를 선택하세요.",
+        "Permissions에서 최소한 필요한 권한만 선택하세요 (최소 repo, read:user 권한 필요).",
+        "Generate token을 클릭하여 토큰을 생성하세요.",
+        "생성된 토큰을 안전한 곳에 복사하여 보관하세요. 페이지를 떠나면 다시 볼 수 없습니다."
+      ],
+      "security_notes": [
+        "토큰은 비밀번호와 같이 취급하세요. 절대 공개 저장소에 저장하거나 코드에 하드코딩하지 마세요.",
+        "토큰에 필요한 최소한의 권한만 부여하세요.",
+        "가능한 짧은 만료 기간을 설정하세요.",
+        "토큰이 노출되었다고 의심되면 즉시 삭제하고 새로 발급하세요."
+      ],
+      "documentation_link": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+      "input_prompt": "GitHub 개인 액세스 토큰을 입력하세요",
+      "env_var_name": "GITHUB_PERSONAL_ACCESS_TOKEN"
+    },
+    "en": {
+      "title": "GitHub Personal Access Token Setup",
+      "description": "GitHub MCP server requires a personal access token to use the GitHub API.",
+      "token_type_info": "GitHub offers two types of personal access tokens: fine-grained personal access tokens and personal access tokens (classic). For security reasons, fine-grained tokens are recommended.",
+      "steps": [
+        "Sign in to your GitHub account.",
+        "Click your profile photo in the upper-right corner, then click Settings.",
+        "In the left sidebar, click Developer settings.",
+        "Under Personal access tokens, click Fine-grained tokens.",
+        "Click Generate new token.",
+        "Enter a token name, expiration date, and description (short expiration periods are recommended for security).",
+        "Under Resource owner, select which account or organization the token should access.",
+        "Under Repository access, select which repositories the token needs access to.",
+        "Under Permissions, select the minimum necessary permissions (minimum: repo, read:user).",
+        "Click Generate token to create your token.",
+        "Copy and store your token in a secure location. You won't be able to see it again after you leave the page."
+      ],
+      "security_notes": [
+        "Treat tokens like passwords. Never store them in public repositories or hardcode them in your code.",
+        "Grant only the minimum permissions necessary for your token.",
+        "Set a short expiration period when possible.",
+        "If you suspect a token has been exposed, delete it immediately and generate a new one."
+      ],
+      "documentation_link": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+      "input_prompt": "Enter your GitHub personal access token",
+      "env_var_name": "GITHUB_PERSONAL_ACCESS_TOKEN"
+    }
+  },
+  "features": [
+    "저장소 내용 탐색",
+    "이슈 관리",
+    "PR 생성 및 검토",
+    "코드 검색",
+    "저장소 파일 편집 및 커밋",
+    "릴리스 관리"
+  ]
+} 
