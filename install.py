@@ -23,6 +23,11 @@ init()
 # 전역 언어 설정
 LANG = config.DEFAULT_LANG
 TEXTS = config.TEXTS
+GITHUB_REPO_OWNER = config.GITHUB_REPO_OWNER
+GITHUB_REPO_NAME = config.GITHUB_REPO_NAME
+GITHUB_REPO_BRANCH = config.GITHUB_REPO_BRANCH
+MCP_SHOP_PATH = config.MCP_SHOP_PATH
+REMOTE_MCP_CACHE_DIR = config.REMOTE_MCP_CACHE_DIR
 
 def _(key, lang=config.DEFAULT_LANG):
     """다국어 메시지 가져오기"""
