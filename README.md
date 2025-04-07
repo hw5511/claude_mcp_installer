@@ -8,6 +8,7 @@
 - **터미널 명령어 실행**: Claude가 시스템 명령어를 실행할 수 있습니다.
 - **허용 경로 설정**: 사용자가 Claude가 접근할 수 있는 경로를 지정할 수 있습니다.
 - **MCP Shop**: 다양한 MCP(Multi-Channel Processing) 템플릿을 설치하고 관리할 수 있습니다.
+- **의존성 패키지 자동 설치**: 필요한 의존성 패키지(Node.js 모듈, Python 라이브러리 등)를 자동으로 설치합니다.
 
 ## MCP Shop
 
@@ -18,19 +19,22 @@ MCP Shop은 다양한 외부 서비스와 API를 Claude 데스크톱 애플리�
 - 다양한 MCP 템플릿 브라우징 및 설치
 - API 토큰이나 인증 정보가 필요한 서비스를 위한 가이드 제공
 - 사용자 환경에 맞춘 서비스 설정 자동화
+- 필요한 의존성 패키지 자동 설치 (Node.js, Python 등)
 
 ### 현재 제공되는 MCP 템플릿
 
 - **GitHub MCP**: GitHub API를 사용하여 저장소, 이슈, PR 등을 관리할 수 있습니다.
+- **Notion MCP**: Notion API를 사용하여 문서와 데이터베이스를 관리할 수 있습니다.
 - (더 많은 템플릿이 추가될 예정입니다)
 
 ### MCP 템플릿 구조
 
 각 MCP 템플릿은 다음과 같은 구조로 구성됩니다:
 
-1. **Python 스크립트 파일**: MCP 기능을 구현하는 스크립트입니다.
+1. **스크립트 파일**: MCP 기능을 구현하는 스크립트입니다. (Python, JavaScript 등)
 2. **설정 템플릿 파일**: Claude 데스크톱 설정에 추가할 서버 설정 정보입니다.
-3. **메타데이터 파일**: 템플릿에 대한 설명 및 인증 정보 등을 포함합니다.
+3. **메타데이터 파일**: 템플릿에 대한 설명 및 인증 정보, 의존성 요구사항 등을 포함합니다.
+4. **의존성 설치 스크립트**: 필요한 패키지를 자동으로 설치하는 스크립트입니다.
 
 #### API 토큰이 필요한 MCP 템플릿
 
@@ -38,6 +42,13 @@ GitHub MCP와 같이 외부 API 토큰이 필요한 템플릿의 경우:
 - 메타데이터 파일에 인증 가이드와 토큰 요구사항이 포함됩니다.
 - 설치 과정에서 토큰 입력을 요청하고 보안 가이드를 제공합니다.
 - 입력받은 토큰은 Claude 설정 파일에 안전하게 저장됩니다.
+
+#### 의존성 패키지가 필요한 MCP 템플릿
+
+Node.js 모듈이나 Python 라이브러리 등 추가 패키지가 필요한 템플릿:
+- 메타데이터 파일에 의존성 요구사항이 정의됩니다 (`requires_dependencies: true`).
+- 운영체제별 설치 스크립트가 제공됩니다 (Windows, Linux, macOS).
+- 설치 과정에서 필요한 패키지를 자동으로 설치합니다.
 
 #### API 토큰이 필요하지 않은 MCP 템플릿
 
@@ -50,11 +61,14 @@ GitHub MCP와 같이 외부 API 토큰이 필요한 템플릿의 경우:
 자신만의 MCP 템플릿을 만들려면:
 
 1. `mcp_shop` 디렉토리 안에 새 폴더 생성 (예: `my_custom_mcp`)
-2. 필요한 Python 스크립트 작성
+2. 필요한 스크립트 파일 작성 (Python, JavaScript 등)
 3. 설정 템플릿 파일 생성 (`*_config_template.json`)
 4. 메타데이터 파일 작성 (`metadata.json`)
    - API 토큰이 필요한 경우 `requires_authentication: true` 설정
    - 인증 가이드와 단계 정보 추가
+   - 의존성 패키지가 필요한 경우 `requires_dependencies: true` 설정
+   - 운영체제별 설치 스크립트 경로 지정 (예: `"install_script": {"windows": "install_dependencies.bat"}`)
+5. 필요한 경우 의존성 패키지 설치 스크립트 작성
 
 자세한 템플릿 개발 가이드는 향후 제공될 예정입니다.
 
@@ -132,7 +146,7 @@ install.bat
 
 ## 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
 
 ---
 
@@ -146,6 +160,7 @@ This project is an installation program for extension scripts that provide addit
 - **Terminal Command Execution**: Enables Claude to execute system commands.
 - **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
 - **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
 
 ## MCP Shop
 
@@ -156,19 +171,22 @@ MCP Shop is a collection of templates that allow connecting various external ser
 - Browsing and installing various MCP templates
 - Providing guides for services that require API tokens or authentication
 - Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
 
 ### Currently Available MCP Templates
 
 - **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
 - (More templates are planned to be added)
 
 ### MCP Template Structure
 
 Each MCP template consists of the following:
 
-1. **Python Script File**: The script that implements the MCP functionality.
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
 2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
-3. **Metadata File**: Contains description and authentication information about the template.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
 
 #### MCP Templates Requiring API Tokens
 
@@ -176,6 +194,13 @@ For templates that require external API tokens, such as GitHub MCP:
 - The metadata file contains authentication guides and token requirements.
 - The installer requests and provides a security guide during installation.
 - The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
 
 #### MCP Templates Not Requiring API Tokens
 
@@ -188,11 +213,14 @@ For templates that do not require external API tokens:
 To create your own MCP template:
 
 1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
-2. Write the necessary Python script
+2. Write the necessary script file (Python, JavaScript, etc.)
 3. Create a configuration template file (`*_config_template.json`)
 4. Write a metadata file (`metadata.json`)
    - If the template requires authentication, set `requires_authentication: true`
    - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
 
 A detailed template development guide will be provided in the future.
 
@@ -270,5 +298,5143 @@ You can use the following command line arguments for specific tasks:
 
 ## License
 
-This project is distributed under the MIT License. See the `LICENSE` file for more information.#   ������m�  LѤ¸� 
- 
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option.
+
+## Project Structure
+
+- `install.py`: Console-based installation script
+- `install.bat`: Batch file to run the installation script in Windows
+- `src/`: Directory containing source files
+  - `filesystem.py`: Script providing file system access functionality
+  - `terminal.py`: Script providing terminal command execution functionality
+  - `allowed_dirs_manager.py`: Script providing allowed path management functionality
+  - `claude_desktop_config.json`: Claude desktop configuration file
+  - `allowed_dirs.json`: File defining the list of allowed paths
+
+## Troubleshooting
+
+- **File Not Found Error**: Verify that the installation paths are correct.
+- **Permission Error**: Try running the installer with administrator privileges.
+- **Path Access Denied**: Make sure the path is included in the list of allowed paths.
+
+## How to Contribute
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+## License
+
+This project is distributed under the MIT License. See the `LICENSE` file for more information.
+
+---
+
+# Claude Extension Script Installer
+
+This project is an installation program for extension scripts that provide additional functionality for the Claude desktop application. It enables features such as file system access and terminal command execution.
+
+## Features
+
+- **File System Access**: Allows Claude to read and write files in specific directories.
+- **Terminal Command Execution**: Enables Claude to execute system commands.
+- **Configurable Allowed Paths**: Users can specify which paths Claude is allowed to access.
+- **MCP Shop**: Allows installing and managing various MCP(Multi-Channel Processing) templates.
+- **Dependency Package Auto Installation**: Automatically installs necessary dependency packages (Node.js modules, Python libraries, etc.).
+
+## MCP Shop
+
+MCP Shop is a collection of templates that allow connecting various external services and APIs to the Claude desktop application.
+
+### MCP Shop's Main Features
+
+- Browsing and installing various MCP templates
+- Providing guides for services that require API tokens or authentication
+- Automating service setup for user environments
+- Automatically installing necessary dependency packages (Node.js, Python, etc.)
+
+### Currently Available MCP Templates
+
+- **GitHub MCP**: Allows managing repositories, issues, and PRs using GitHub API.
+- **Notion MCP**: Allows managing documents and databases using Notion API.
+- (More templates are planned to be added)
+
+### MCP Template Structure
+
+Each MCP template consists of the following:
+
+1. **Script File**: The script that implements the MCP functionality. (Python, JavaScript, etc.)
+2. **Configuration Template File**: Server configuration information to add to Claude desktop settings.
+3. **Metadata File**: Contains description and authentication information about the template, and dependency requirements.
+4. **Dependency Installation Script**: The script that automatically installs necessary packages.
+
+#### MCP Templates Requiring API Tokens
+
+For templates that require external API tokens, such as GitHub MCP:
+- The metadata file contains authentication guides and token requirements.
+- The installer requests and provides a security guide during installation.
+- The input token is securely saved in Claude configuration file.
+
+#### MCP Templates Requiring Dependency Packages
+
+For templates that require additional packages, such as Node.js modules or Python libraries:
+- The metadata file defines dependency requirements (`requires_dependencies: true`).
+- Operating system-specific installation scripts are provided.
+- The installer automatically installs necessary packages during installation.
+
+#### MCP Templates Not Requiring API Tokens
+
+For templates that do not require external API tokens:
+- They can be installed directly without any authentication process.
+- They use only local file system or built-in features.
+
+### Creating Your Own MCP Template
+
+To create your own MCP template:
+
+1. Create a new folder inside the `mcp_shop` directory (e.g., `my_custom_mcp`)
+2. Write the necessary script file (Python, JavaScript, etc.)
+3. Create a configuration template file (`*_config_template.json`)
+4. Write a metadata file (`metadata.json`)
+   - If the template requires authentication, set `requires_authentication: true`
+   - Add authentication guides and step information
+   - If the template requires additional packages, set `requires_dependencies: true`
+   - Specify installation script paths for different operating systems (e.g., `"install_script": {"windows": "install_dependencies.bat"}`)
+5. If necessary, write the dependency installation script
+
+A detailed template development guide will be provided in the future.
+
+## Installation Requirements
+
+- Windows operating system
+- Python 3.6 or higher
+
+## Installation Methods
+
+### Option 1: Using the Installation Script
+
+1. Clone or download this repository.
+2. Double-click the `install.bat` file in Windows Explorer, or open Command Prompt and run:
+
+```
+install.bat
+```
+
+3. Follow the on-screen instructions to complete the installation.
+
+### Option 2: Using Command Line Arguments
+
+You can use the following command line arguments for specific tasks:
+
+- Uninstall: `install.bat --uninstall`
+- Manage allowed directories: `install.bat --manage-dirs`
+
+### Option 3: Manual Installation
+
+1. Create the `%APPDATA%\Claude\mcp_scripts` directory.
+2. Copy the `filesystem.py`, `terminal.py`, `allowed_dirs_manager.py`, and `allowed_dirs.json` files from the `src` directory to the `mcp_scripts` directory.
+3. Copy the `claude_desktop_config.json` file to the `%APPDATA%\Claude` directory and replace the `{MCP_SCRIPTS_DIR}` portion with the absolute path to the `mcp_scripts` directory.
+
+## Usage Instructions
+
+### Managing Allowed Paths
+
+1. Run `install.bat --manage-dirs`.
+2. Select your desired option from the menu:
+   - Add path: Add a new path to the allowed list.
+   - Remove path: Remove an existing path from the allowed list.
+   - Save and exit: Save your changes.
+   - Cancel and exit: Discard your changes.
+
+### Reinstalling or Resetting
+
+1. Run `install.bat`.
+2. Select the "Reset and reinstall" option
