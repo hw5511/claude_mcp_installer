@@ -368,42 +368,75 @@ def install_mcp_template(mcp_name, mcp_dir=None):
             for template_file in config_template_files:
                 with open(os.path.join(mcp_dir, template_file), 'r', encoding='utf-8') as f:
                     template_config = json.load(f)
+                    print(f"템플릿 파일 '{template_file}' 내용: {json.dumps(template_config, indent=2)}")  # 디버그 메시지 추가
                 
                 # mcpServers에 템플릿 추가
                 if 'mcpServers' in config:
                     for server_name, server_config in template_config.items():
+                        print(f"템플릿에서 서버 설정 처리 중: {server_name}")  # 디버그 메시지 추가
+                        
+                        # 원본 서버 설정 백업
+                        original_config = server_config.copy() if isinstance(server_config, dict) else {}
+                        
                         # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
                         if 'args' in server_config:
                             # 운영체제별 경로 구분자 처리를 개선
                             # Windows에서는 백슬래시를 사용하고, JSON 이스케이프를 위해 이중 백슬래시로 변환
                             mcp_scripts_path_formatted = mcp_scripts_path.replace("\\", "\\\\")
+                            print(f"args 처리 전: {server_config['args']}")  # 디버그 메시지 추가
                             
-                            # 원본 템플릿의 args 값을 보존
-                            if 'args' in template_config[server_name] and template_config[server_name]['args']:
-                                server_config['args'] = []
+                            try:
+                                # 원본 템플릿의 args 값을 보존
+                                if 'args' in template_config[server_name] and template_config[server_name]['args']:
+                                    server_config['args'] = []
+                                    
+                                    for arg in template_config[server_name]['args']:
+                                        # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
+                                        if "{MCP_SCRIPTS_DIR}" in arg:
+                                            # 슬래시나 백슬래시 모두 백슬래시로 표준화
+                                            new_arg = arg.replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path_formatted)
+                                            
+                                            # 필요한 경우 슬래시를 백슬래시로 변환
+                                            if '/' in new_arg:
+                                                new_arg = new_arg.replace('/', '\\\\')
+                                            
+                                            server_config['args'].append(new_arg)
+                                        else:
+                                            server_config['args'].append(arg)
+                                else:
+                                    print(f"템플릿에 args가 없거나 비어있어 기본값 설정")  # 디버그 메시지 추가
+                                    # 기본값으로 스크립트 경로 설정
+                                    server_config['args'] = []  # 빈 배열로 초기화
+                                    for script_file in copied_script_files:
+                                        if script_file.endswith('.py'):
+                                            script_path = os.path.join(mcp_scripts_path_formatted, script_file)
+                                            # 슬래시를 백슬래시로 변환
+                                            script_path = script_path.replace('/', '\\\\')
+                                            server_config['args'].append(script_path)
+                                            print(f"기본 Python 스크립트 경로 추가: {script_path}")  # 디버그 메시지 추가
+                                            break
                                 
-                                for arg in template_config[server_name]['args']:
-                                    # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
-                                    if "{MCP_SCRIPTS_DIR}" in arg:
-                                        # 슬래시나 백슬래시 모두 백슬래시로 표준화
-                                        new_arg = arg.replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path_formatted)
-                                        
-                                        # 필요한 경우 슬래시를 백슬래시로 변환
-                                        if '/' in new_arg:
-                                            new_arg = new_arg.replace('/', '\\\\')
-                                        
-                                        server_config['args'].append(new_arg)
-                                    else:
-                                        server_config['args'].append(arg)
-                            else:
-                                # 기본값으로 스크립트 경로 설정
+                                # args가 여전히 비어있는지 확인 (안전장치)
+                                if not server_config['args'] and copied_script_files:
+                                    print(f"안전장치: args가 여전히 비어있어 스크립트 경로 강제 추가")
+                                    for script_file in copied_script_files:
+                                        if script_file.endswith('.py'):
+                                            script_path = os.path.join(mcp_scripts_path_formatted, script_file)
+                                            script_path = script_path.replace('/', '\\\\')
+                                            server_config['args'] = [script_path]
+                                            break
+                            except Exception as e:
+                                print(f"args 처리 중 오류 발생: {str(e)}")
+                                # 오류 발생 시 기본 스크립트 파일 사용
+                                server_config['args'] = []
                                 for script_file in copied_script_files:
                                     if script_file.endswith('.py'):
                                         script_path = os.path.join(mcp_scripts_path_formatted, script_file)
-                                        # 슬래시를 백슬래시로 변환
                                         script_path = script_path.replace('/', '\\\\')
                                         server_config['args'].append(script_path)
                                         break
+                            
+                            print(f"args 처리 후: {server_config['args']}")  # 디버그 메시지 추가
                             
                             # 스크립트 경로 검증
                             for i, arg in enumerate(server_config['args']):
