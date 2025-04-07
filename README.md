@@ -92,6 +92,24 @@ install.bat
 - **파일을 찾을 수 없음 오류**: 설치 경로가 올바른지 확인하세요.
 - **권한 오류**: 관리자 권한으로 설치 프로그램을 실행해 보세요.
 - **경로 접근 거부**: 허용 경로 목록에 해당 경로가 포함되어 있는지 확인하세요.
+- **환경 변수 인식 문제**: `${변수명}` 형식의 환경 변수가 인식되지 않는 경우, 설치 스크립트가 최신 버전인지 확인하세요. 최신 버전의 설치 스크립트는 이 형식을 자동으로 인식합니다.
+- **MCP 스크립트 경로 오류**: MCP 스크립트 파일이 설정에 지정된 경로에 없는 경우, 설치 프로그램이 설정 파일 검증 단계에서 이 문제를 자동으로 감지하고 해결 방법을 안내합니다.
+- **Notion API 토큰 문제**: Notion MCP 설치 시 API 토큰이 올바르게 적용되지 않는 경우, 수동으로 `%APPDATA%\Claude\claude_desktop_config.json` 파일을 열고 `"NOTION_API_TOKEN"` 값을 실제 API 토큰으로 대체하세요.
+
+### Notion MCP 관련 문제 해결
+Notion MCP 설치 후 작동하지 않는 경우, 다음 단계를 확인하세요:
+
+1. **API 토큰 확인**: 
+   - Notion API 토큰이 올바르게 설정되었는지 확인
+   - `%APPDATA%\Claude\claude_desktop_config.json` 파일에서 `NOTION_API_TOKEN` 값이 실제 API 토큰으로 설정되어 있어야 함
+
+2. **스크립트 파일 경로 확인**:
+   - `%APPDATA%\Claude\mcp_scripts` 디렉토리에 `notion_mcp.py` 파일이 존재하는지 확인
+   - 설정 파일의 경로 값이 실제 파일 위치와 일치하는지 확인
+
+3. **의존성 패키지 확인**:
+   - `pip install notion-client notion2md` 명령을 실행하여 필요한 라이브러리가 설치되어 있는지 확인
+
 ## 기여 방법
 1. 이 저장소를 포크합니다.
 2. 새 기능 분기를 만듭니다 (`git checkout -b feature/amazing-feature`).
@@ -198,4 +216,4 @@ You can use the following command line arguments for specific tasks:
 4. Push to the branch (`git push origin feature/amazing-feature`).
 5. Open a Pull Request.
 ## License
-2. Select the "Reset and reinstall" option
+This project is distributed under the MIT License. See the `LICENSE` file for more information.

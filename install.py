@@ -353,11 +353,18 @@ def install_mcp_template(mcp_name, mcp_dir=None):
     mcp_scripts_path = os.path.join(os.environ['APPDATA'], 'Claude', 'mcp_scripts')
     script_files = [f for f in os.listdir(mcp_dir) if f.endswith('.py') or f.endswith('.js')]
     
+    copied_script_files = []
     for script_file in script_files:
         src_file = os.path.join(mcp_dir, script_file)
         dest_file = os.path.join(mcp_scripts_path, script_file)
         shutil.copy(src_file, dest_file)
-        print(TEXTS[LANG]['file_copied'].format(script_file))
+        
+        # 복사된 파일 확인
+        if os.path.exists(dest_file):
+            copied_script_files.append(script_file)
+            print(TEXTS[LANG]['file_copied'].format(script_file))
+        else:
+            print(f"경고: {script_file} 파일이 제대로 복사되지 않았습니다.")
     
     # 2. config.json 업데이트
     config_template_files = [f for f in os.listdir(mcp_dir) if f.endswith('_config_template.json')]
@@ -383,13 +390,48 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                                 arg.replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path.replace("\\", "\\\\"))
                                 for arg in server_config['args']
                             ]
+                            
+                            # 스크립트 경로 검증
+                            for arg in server_config['args']:
+                                # 스크립트 파일 경로인 경우 (파이썬/자바스크립트 파일)
+                                if isinstance(arg, str) and (arg.endswith('.py') or arg.endswith('.js')):
+                                    script_path = arg
+                                    if '{MCP_SCRIPTS_DIR}' in script_path:
+                                        continue  # 미처리된 플레이스홀더가 있으면 건너뜀
+                                    
+                                    # 절대 경로인지 확인
+                                    if not os.path.isabs(script_path):
+                                        script_path = os.path.join(mcp_scripts_path, os.path.basename(script_path))
+                                    
+                                    # 실제 파일 존재 여부 확인
+                                    if not os.path.exists(script_path):
+                                        print(f"경고: 서버 '{server_name}'에 지정된 스크립트 파일이 존재하지 않습니다: {script_path}")
+                                        
+                                        # 대안 파일 확인 (복사된 파일 목록에서)
+                                        alternative_file = None
+                                        for copied_file in copied_script_files:
+                                            if copied_file == os.path.basename(script_path):
+                                                alternative_file = os.path.join(mcp_scripts_path, copied_file)
+                                                break
+                                        
+                                        # 대안이 있다면 수정 제안
+                                        if alternative_file:
+                                            print(f"대체 파일 경로 발견: {alternative_file}")
+                                            server_config['args'] = [
+                                                arg.replace(script_path, alternative_file.replace("\\", "\\\\"))
+                                                if script_path in arg else arg
+                                                for arg in server_config['args']
+                                            ]
                         
                         # 인증 토큰이 있는 경우 설정에 추가
                         if 'env' in server_config and auth_tokens:
                             for env_var, token in auth_tokens.items():
                                 if env_var in server_config['env']:
                                     # 토큰 플레이스홀더 교체
-                                    server_config['env'][env_var] = token
+                                    env_value = server_config['env'][env_var]
+                                    # ${변수명} 형식 지원 추가
+                                    if isinstance(env_value, str) and (env_value == env_var or env_value == f"${{{env_var}}}"):
+                                        server_config['env'][env_var] = token
                         
                         # 기존 설정에 추가
                         config['mcpServers'][server_name] = server_config
@@ -420,6 +462,48 @@ def install_mcp_template(mcp_name, mcp_dir=None):
     
     print(TEXTS[LANG]['mcp_install_complete'].format(mcp_name))
     print(TEXTS[LANG]['restart_claude'])
+    
+    # 설치 완료 후 설정 파일 검증
+    config_file = os.path.join(os.environ['APPDATA'], 'Claude', 'claude_desktop_config.json')
+    if os.path.exists(config_file):
+        try:
+            # 설정 파일 로드
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            
+            # MCP 서버 설정 검증
+            if 'mcpServers' in config and mcp_name in config['mcpServers']:
+                server_config = config['mcpServers'][mcp_name]
+                validation_issues = []
+                
+                # 1. 스크립트 파일 경로 검증
+                if 'args' in server_config:
+                    for arg in server_config['args']:
+                        if isinstance(arg, str) and (arg.endswith('.py') or arg.endswith('.js')):
+                            # 상대 경로를 절대 경로로 변환
+                            script_path = arg
+                            if not os.path.isabs(script_path):
+                                script_path = os.path.join(mcp_scripts_path, os.path.basename(script_path))
+                            
+                            if not os.path.exists(script_path):
+                                validation_issues.append(f"- 스크립트 파일이 존재하지 않음: {script_path}")
+                
+                # 2. 환경 변수 설정 검증
+                if 'env' in server_config:
+                    for env_var, value in server_config['env'].items():
+                        if isinstance(value, str) and (value.startswith('$') or value == env_var):
+                            validation_issues.append(f"- 환경 변수가 설정되지 않음: {env_var}")
+                
+                # 검증 결과 출력
+                if validation_issues:
+                    print("\n주의: 다음 설정 문제가 발견되었습니다:")
+                    for issue in validation_issues:
+                        print(issue)
+                    print("Claude 데스크톱 앱 재시작 후 MCP 서버가 정상적으로 시작되지 않을 수 있습니다.")
+                else:
+                    print("\n설정 파일 검증 완료: 문제가 발견되지 않았습니다.")
+        except Exception as e:
+            print(f"\n설정 파일 검증 중 오류 발생: {str(e)}")
 
 def print_colored(text, color):
     """색상이 있는 텍스트 출력"""
