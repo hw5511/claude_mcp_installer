@@ -397,7 +397,7 @@ def install_mcp_template(mcp_name, mcp_dir=None):
     if requires_dependencies and install_script:
         install_script_path = os.path.join(mcp_dir, install_script)
         if os.path.exists(install_script_path):
-            print(f"\n의존성 패키지 설치를 시작합니다...")
+            print(f"\nStarting dependency package installation...")
             try:
                 if platform.system().lower() == 'windows':
                     subprocess.run([install_script_path], shell=True, check=True)
@@ -405,12 +405,12 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                     # Linux/macOS에서는 실행 권한 부여 후 실행
                     os.chmod(install_script_path, 0o755)
                     subprocess.run([install_script_path], shell=True, check=True)
-                print("의존성 패키지 설치가 완료되었습니다.")
+                print("Dependency package installation completed.")
             except subprocess.CalledProcessError as e:
-                print(f"의존성 패키지 설치 중 오류가 발생했습니다: {str(e)}")
-                print("수동으로 필요한 패키지를 설치해주세요.")
+                print(f"Error occurred during dependency installation: {str(e)}")
+                print("Please install required packages manually.")
         else:
-            print(f"설치 스크립트를 찾을 수 없습니다: {install_script_path}")
+            print(f"Installation script not found: {install_script_path}")
     
     print(TEXTS[LANG]['mcp_install_complete'].format(mcp_name))
     print(TEXTS[LANG]['restart_claude'])

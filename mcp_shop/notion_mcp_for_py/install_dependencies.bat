@@ -1,28 +1,28 @@
 @echo off
-echo Python 의존성 설치를 시작합니다...
+echo Starting Python dependency installation...
 
-REM Python이 설치되어 있는지 확인
+REM Check if Python is installed
 python --version > nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Python이 설치되어 있지 않습니다. Python 3.6 이상 버전을 설치해주세요.
+    echo Python is not installed. Please install Python 3.6 or higher.
     echo https://www.python.org/downloads/
     exit /b 1
 )
 
-REM pip이 설치되어 있는지 확인
+REM Check if pip is installed
 pip --version > nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo pip이 설치되어 있지 않습니다. Python과 함께 pip을 설치해주세요.
+    echo pip is not installed. Please install pip with Python.
     exit /b 1
 )
 
-echo 필요한 Python 패키지를 설치합니다...
+echo Installing required Python packages...
 pip install notion-client notion2md
 
 if %ERRORLEVEL% neq 0 (
-    echo 패키지 설치 중 오류가 발생했습니다.
+    echo Error occurred during package installation.
     exit /b 1
 ) else (
-    echo Notion MCP Python 의존성 설치가 완료되었습니다.
+    echo Notion MCP Python dependency installation completed.
     exit /b 0
 ) 
