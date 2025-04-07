@@ -378,50 +378,59 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                             # Windows에서는 백슬래시를 사용하고, JSON 이스케이프를 위해 이중 백슬래시로 변환
                             mcp_scripts_path_formatted = mcp_scripts_path.replace("\\", "\\\\")
                             
-                            # 경로 구분자 표준화: 백슬래시를 사용하도록 변경
-                            server_config['args'] = []
-                            for arg in template_config[server_name]['args']:
-                                # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
-                                if "{MCP_SCRIPTS_DIR}" in arg:
-                                    # 슬래시나 백슬래시 모두 백슬래시로 표준화
-                                    arg = arg.replace("/", "\\\\").replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path_formatted)
-                                    if not arg.endswith(".py") and not arg.endswith(".js"):
-                                        # 경로 끝에 파일 확장자가 없는 경우 처리
-                                        if not arg.endswith("\\\\"):
-                                            arg = arg + "\\\\"
-                                server_config['args'].append(arg)
+                            # 원본 템플릿의 args 값을 보존
+                            if 'args' in template_config[server_name] and template_config[server_name]['args']:
+                                server_config['args'] = []
+                                
+                                for arg in template_config[server_name]['args']:
+                                    # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
+                                    if "{MCP_SCRIPTS_DIR}" in arg:
+                                        # 슬래시나 백슬래시 모두 백슬래시로 표준화
+                                        new_arg = arg.replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path_formatted)
+                                        
+                                        # 필요한 경우 슬래시를 백슬래시로 변환
+                                        if '/' in new_arg:
+                                            new_arg = new_arg.replace('/', '\\\\')
+                                        
+                                        server_config['args'].append(new_arg)
+                                    else:
+                                        server_config['args'].append(arg)
+                            else:
+                                # 기본값으로 스크립트 경로 설정
+                                for script_file in copied_script_files:
+                                    if script_file.endswith('.py'):
+                                        script_path = os.path.join(mcp_scripts_path_formatted, script_file)
+                                        # 슬래시를 백슬래시로 변환
+                                        script_path = script_path.replace('/', '\\\\')
+                                        server_config['args'].append(script_path)
+                                        break
                             
                             # 스크립트 경로 검증
-                            for arg in server_config['args']:
+                            for i, arg in enumerate(server_config['args']):
                                 # 스크립트 파일 경로인 경우 (파이썬/자바스크립트 파일)
                                 if isinstance(arg, str) and (arg.endswith('.py') or arg.endswith('.js')):
                                     script_path = arg
                                     if '{MCP_SCRIPTS_DIR}' in script_path:
                                         continue  # 미처리된 플레이스홀더가 있으면 건너뜀
                                     
+                                    # 경로에서 이스케이프된 백슬래시를 단일 백슬래시로 변환
+                                    test_path = script_path.replace('\\\\', '\\')
+                                    
                                     # 절대 경로인지 확인
-                                    if not os.path.isabs(script_path):
-                                        script_path = os.path.join(mcp_scripts_path, os.path.basename(script_path))
+                                    if not os.path.isabs(test_path):
+                                        test_path = os.path.join(mcp_scripts_path, os.path.basename(test_path))
                                     
                                     # 실제 파일 존재 여부 확인
-                                    if not os.path.exists(script_path):
-                                        print(f"경고: 서버 '{server_name}'에 지정된 스크립트 파일이 존재하지 않습니다: {script_path}")
+                                    if not os.path.exists(test_path):
+                                        print(f"경고: 서버 '{server_name}'에 지정된 스크립트 파일이 존재하지 않습니다: {test_path}")
                                         
                                         # 대안 파일 확인 (복사된 파일 목록에서)
-                                        alternative_file = None
                                         for copied_file in copied_script_files:
-                                            if copied_file == os.path.basename(script_path):
-                                                alternative_file = os.path.join(mcp_scripts_path, copied_file)
+                                            if copied_file == os.path.basename(test_path):
+                                                alternative_file = os.path.join(mcp_scripts_path, copied_file).replace('\\', '\\\\')
+                                                print(f"대체 파일 경로 발견: {alternative_file}")
+                                                server_config['args'][i] = alternative_file
                                                 break
-                                        
-                                        # 대안이 있다면 수정 제안
-                                        if alternative_file:
-                                            print(f"대체 파일 경로 발견: {alternative_file}")
-                                            server_config['args'] = [
-                                                arg.replace(script_path, alternative_file.replace("\\", "\\\\"))
-                                                if script_path in arg else arg
-                                                for arg in server_config['args']
-                                            ]
                         
                         # 인증 토큰이 있는 경우 설정에 추가
                         if 'env' in server_config and auth_tokens:
