@@ -10,6 +10,9 @@ import locale
 import subprocess
 from pathlib import Path
 from colorama import Fore, init
+import requests  # GitHub API 사용을 위해 추가
+import io
+import zipfile  # ZIP 파일 처리 위해 추가
 
 # Initialize colorama
 init()
@@ -17,6 +20,13 @@ init()
 # 기본 언어 설정 (시스템 로케일 기반)
 DEFAULT_LANG = 'ko' if locale.getdefaultlocale()[0].startswith('ko') else 'en'
 LANG = DEFAULT_LANG  # 전역 언어 설정
+
+# GitHub 리포지토리 설정 (상수)
+GITHUB_REPO_OWNER = "hw5511"
+GITHUB_REPO_NAME = "claude_mcp_installer"
+GITHUB_REPO_BRANCH = "main"
+MCP_SHOP_PATH = "mcp_shop"
+REMOTE_MCP_CACHE_DIR = os.path.join(os.environ['APPDATA'], 'Claude', 'remote_mcp_cache')
 
 # 다국어 메시지
 TEXTS = {
@@ -85,7 +95,17 @@ TEXTS = {
         'removing_mcp': "MCP 제거 중: {0}",
         'mcp_removed': "MCP가 성공적으로 제거되었습니다: {0}",
         'mcp_removal_failed': "MCP 제거 실패: {0}",
-        'no_mcps_to_remove': "제거할 MCP가 없습니다."
+        'no_mcps_to_remove': "제거할 MCP가 없습니다.",
+        'remote_mcp_shop': "원격 MCP Shop",
+        'connecting_to_github': "GitHub 저장소에서 MCP 템플릿 목록을 가져오는 중...",
+        'github_connection_error': "GitHub 연결 오류: {0}",
+        'downloading_mcp': "MCP 템플릿 다운로드 중: {0}",
+        'download_complete': "다운로드 완료: {0}",
+        'download_failed': "다운로드 실패: {0}",
+        'local_remote_choice': "MCP 소스 선택:",
+        'local_mcp_option': "  1. 로컬 MCP Shop",
+        'remote_mcp_option': "  2. 원격 MCP Shop (GitHub)",
+        'remote_mcp_refresh': "  3. 원격 MCP 목록 새로고침"
     },
     'en': {
         'banner_title': "Claude Extension Script Installer",
@@ -152,7 +172,17 @@ TEXTS = {
         'removing_mcp': "Removing MCP: {0}",
         'mcp_removed': "MCP successfully removed: {0}",
         'mcp_removal_failed': "Failed to remove MCP: {0}",
-        'no_mcps_to_remove': "No MCPs to remove."
+        'no_mcps_to_remove': "No MCPs to remove.",
+        'remote_mcp_shop': "Remote MCP Shop",
+        'connecting_to_github': "Fetching MCP template list from GitHub repository...",
+        'github_connection_error': "GitHub connection error: {0}",
+        'downloading_mcp': "Downloading MCP template: {0}",
+        'download_complete': "Download complete: {0}",
+        'download_failed': "Download failed: {0}",
+        'local_remote_choice': "Select MCP source:",
+        'local_mcp_option': "  1. Local MCP Shop",
+        'remote_mcp_option': "  2. Remote MCP Shop (GitHub)",
+        'remote_mcp_refresh': "  3. Refresh remote MCP list"
     }
 }
 
@@ -390,11 +420,18 @@ def browse_mcp_shop():
         else:
             print(TEXTS[LANG]['invalid_choice'])
 
-def install_mcp_template(mcp_name):
-    """선택한 MCP 템플릿을 설치하는 함수"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    mcp_shop_dir = os.path.join(script_dir, 'mcp_shop')
-    mcp_dir = os.path.join(mcp_shop_dir, mcp_name)
+def install_mcp_template(mcp_name, mcp_dir=None):
+    """선택한 MCP 템플릿을 설치하는 함수
+    
+    Args:
+        mcp_name: MCP 템플릿 이름
+        mcp_dir: MCP 템플릿 디렉토리 경로 (원격 다운로드 시 제공)
+    """
+    # mcp_dir이 제공되지 않으면 로컬 경로 사용
+    if mcp_dir is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        mcp_shop_dir = os.path.join(script_dir, 'mcp_shop')
+        mcp_dir = os.path.join(mcp_shop_dir, mcp_name)
     
     if not os.path.exists(mcp_dir):
         print(TEXTS[LANG]['mcp_not_found'].format(mcp_name))
@@ -685,6 +722,183 @@ def list_and_manage_mcps():
             else:
                 print(TEXTS[LANG]['invalid_choice'])
 
+def fetch_remote_mcp_list():
+    """GitHub API를 사용하여 원격 MCP 템플릿 목록을 가져오는 함수"""
+    print(TEXTS[LANG]['connecting_to_github'])
+    
+    try:
+        # GitHub API URL 구성
+        api_url = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/contents/{MCP_SHOP_PATH}"
+        
+        # GitHub API 요청
+        response = requests.get(api_url, params={"ref": GITHUB_REPO_BRANCH})
+        if response.status_code != 200:
+            print(TEXTS[LANG]['github_connection_error'].format(f"Status code {response.status_code}"))
+            return []
+        
+        # 응답 데이터 파싱
+        contents = response.json()
+        
+        # 디렉토리만 필터링 (MCP 템플릿은 디렉토리 형태)
+        mcp_templates = [item for item in contents if item['type'] == 'dir']
+        
+        return mcp_templates
+    except Exception as e:
+        print(TEXTS[LANG]['github_connection_error'].format(str(e)))
+        return []
+
+def get_remote_mcp_metadata(mcp_name):
+    """GitHub에서 특정 MCP 템플릿의 메타데이터를 가져오는 함수"""
+    try:
+        # 메타데이터 파일 경로
+        metadata_path = f"{MCP_SHOP_PATH}/{mcp_name}/metadata.json"
+        api_url = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/contents/{metadata_path}"
+        
+        # GitHub API 요청
+        response = requests.get(api_url, params={"ref": GITHUB_REPO_BRANCH})
+        if response.status_code != 200:
+            return None
+        
+        # Base64로 인코딩된 파일 내용 디코딩
+        import base64
+        content = base64.b64decode(response.json()['content']).decode('utf-8')
+        
+        # JSON 파싱
+        metadata = json.loads(content)
+        return metadata
+    except Exception:
+        return None
+
+def download_mcp_template(mcp_name):
+    """GitHub에서 MCP 템플릿을 다운로드하는 함수"""
+    print(TEXTS[LANG]['downloading_mcp'].format(mcp_name))
+    
+    try:
+        # GitHub에서 다운로드할 ZIP 파일 URL 구성
+        download_url = f"https://github.com/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/archive/{GITHUB_REPO_BRANCH}.zip"
+        
+        # ZIP 파일 다운로드
+        response = requests.get(download_url)
+        if response.status_code != 200:
+            print(TEXTS[LANG]['download_failed'].format(f"Status code {response.status_code}"))
+            return None
+        
+        # 임시 디렉토리 생성
+        os.makedirs(REMOTE_MCP_CACHE_DIR, exist_ok=True)
+        
+        # ZIP 파일 메모리에서 처리
+        with zipfile.ZipFile(io.BytesIO(response.content)) as zip_ref:
+            # MCP 템플릿 경로 추출
+            mcp_path_prefix = f"{GITHUB_REPO_NAME}-{GITHUB_REPO_BRANCH}/{MCP_SHOP_PATH}/{mcp_name}/"
+            mcp_files = [f for f in zip_ref.namelist() if f.startswith(mcp_path_prefix)]
+            
+            if not mcp_files:
+                print(TEXTS[LANG]['download_failed'].format("MCP template not found in ZIP"))
+                return None
+            
+            # MCP 템플릿 파일 추출
+            mcp_local_path = os.path.join(REMOTE_MCP_CACHE_DIR, mcp_name)
+            os.makedirs(mcp_local_path, exist_ok=True)
+            
+            for file_path in mcp_files:
+                # 기본 디렉토리 구조 제외하고 파일 추출
+                rel_path = file_path[len(mcp_path_prefix):]
+                if not rel_path:  # 디렉토리 자체인 경우 스킵
+                    continue
+                
+                # 파일 경로 구성
+                extract_path = os.path.join(mcp_local_path, rel_path)
+                
+                # 디렉토리가 없으면 생성
+                os.makedirs(os.path.dirname(extract_path), exist_ok=True)
+                
+                # 파일 추출
+                with zip_ref.open(file_path) as source, open(extract_path, 'wb') as target:
+                    target.write(source.read())
+        
+        print(TEXTS[LANG]['download_complete'].format(mcp_name))
+        return mcp_local_path
+    
+    except Exception as e:
+        print(TEXTS[LANG]['download_failed'].format(str(e)))
+        return None
+
+def browse_remote_mcp_shop():
+    """GitHub에서 MCP 템플릿 목록을 보여주고 설치할 수 있는 기능"""
+    while True:
+        clear_screen()
+        print(f"\n{TEXTS[LANG]['remote_mcp_shop']}")
+        print("-" * 40)
+        
+        # 원격 MCP 템플릿 목록 가져오기
+        remote_mcps = fetch_remote_mcp_list()
+        
+        if not remote_mcps:
+            print(TEXTS[LANG]['no_mcps_available'])
+            input("\nPress Enter to continue...")
+            return
+        
+        # MCP 템플릿 목록 표시
+        print(TEXTS[LANG]['available_mcps'])
+        for i, mcp in enumerate(remote_mcps, 1):
+            mcp_name = mcp['name']
+            
+            # 메타데이터 가져오기 시도
+            metadata = get_remote_mcp_metadata(mcp_name)
+            if metadata:
+                name = metadata.get('name', mcp_name)
+                description = metadata.get('description', '')
+                print(f"  {i}. {name} - {description}")
+            else:
+                print(f"  {i}. {mcp_name}")
+        
+        print("\n" + TEXTS[LANG]['options'])
+        print(TEXTS[LANG]['install_mcp'])
+        print(TEXTS[LANG]['back_to_main'])
+        
+        choice = input(f"\n{TEXTS[LANG]['select']} (1-{len(remote_mcps)+1}): ")
+        
+        if choice.isdigit() and 1 <= int(choice) <= len(remote_mcps):
+            selected_mcp = remote_mcps[int(choice)-1]['name']
+            
+            # MCP 템플릿 다운로드 
+            mcp_local_path = download_mcp_template(selected_mcp)
+            
+            if mcp_local_path:
+                # 다운로드한 MCP 템플릿 설치
+                install_mcp_template(selected_mcp, mcp_local_path)
+                input("\nPress Enter to continue...")
+        
+        elif choice == str(len(remote_mcps)+1):
+            break
+        else:
+            print(TEXTS[LANG]['invalid_choice'])
+
+def mcp_shop_menu():
+    """MCP Shop 메뉴 (로컬 또는 원격 선택)"""
+    while True:
+        clear_screen()
+        print(f"\nMCP Shop")
+        print("-" * 40)
+        
+        print(TEXTS[LANG]['local_remote_choice'])
+        print(TEXTS[LANG]['local_mcp_option'])
+        print(TEXTS[LANG]['remote_mcp_option'])
+        print(TEXTS[LANG]['back_to_main'])
+        
+        choice = input(f"\n{TEXTS[LANG]['select']} (1-3): ")
+        
+        if choice == '1':
+            # 로컬 MCP Shop 탐색
+            browse_mcp_shop()
+        elif choice == '2':
+            # 원격 MCP Shop 탐색
+            browse_remote_mcp_shop()
+        elif choice == '3':
+            break
+        else:
+            print(TEXTS[LANG]['invalid_choice'])
+
 def main():
     global LANG
     
@@ -718,8 +932,8 @@ def main():
         else:
             sys.exit(0)
     elif choice == 3:
-        # MCP Shop functionality
-        browse_mcp_shop()
+        # MCP Shop functionality (수정됨: 메뉴 표시)
+        mcp_shop_menu()
     elif choice == 4:
         # List and manage installed MCPs
         list_and_manage_mcps()
