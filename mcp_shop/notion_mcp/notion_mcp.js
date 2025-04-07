@@ -3,9 +3,92 @@ const { Client } = require("@notionhq/client");
 const notionToMd = require("notion-to-md");
 const base64 = require("base64-js");
 
+// 모든 콘솔 출력을 가로채서 JSON 형식으로 변환
+const originalConsoleError = console.error;
+const originalConsoleLog = console.log;
+const originalConsoleInfo = console.info;
+
+// 객체가 출력되는 것을 방지하기 위한 안전한 출력 함수
+function safeStringify(obj) {
+  if (typeof obj === 'string') return obj;
+  
+  try {
+    // 이미 JSON 문자열인 경우 그대로 반환
+    if (typeof obj === 'string' && (obj.startsWith('{') || obj.startsWith('['))) {
+      JSON.parse(obj); // 유효한 JSON인지 확인
+      return obj;
+    }
+    
+    // 객체인 경우 안전하게 문자열화
+    if (obj && typeof obj === 'object') {
+      if (obj instanceof Error) {
+        return JSON.stringify({
+          message: obj.message,
+          stack: obj.stack
+        });
+      }
+      
+      // 순환 참조를 처리하기 위한 객체 복제
+      const seen = new WeakSet();
+      const safeObj = JSON.stringify(obj, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular Reference]';
+          }
+          seen.add(value);
+        }
+        return value;
+      });
+      return safeObj;
+    }
+    
+    return String(obj);
+  } catch (err) {
+    return `[Unstringifiable Object: ${typeof obj}]`;
+  }
+}
+
+// 콘솔 함수 오버라이드
+console.error = function(...args) {
+  // 첫 번째 인자가 이미 JSON 객체인 경우 그대로 출력
+  if (args.length === 1 && typeof args[0] === 'string' && args[0].startsWith('{') && args[0].includes('"type"')) {
+    originalConsoleError(args[0]);
+    return;
+  }
+  
+  // 안전하게 JSON 형식으로 변환
+  const safeArgs = args.map(arg => {
+    if (typeof arg === 'string') return arg;
+    return safeStringify(arg);
+  });
+  
+  // 기본 메시지 형식으로 변환
+  originalConsoleError(JSON.stringify({ type: "error", message: safeArgs.join(' ') }));
+};
+
+console.log = function(...args) {
+  // 안전하게 JSON 형식으로 변환
+  const safeArgs = args.map(arg => {
+    if (typeof arg === 'string') return arg;
+    return safeStringify(arg);
+  });
+  
+  originalConsoleLog(JSON.stringify({ type: "log", message: safeArgs.join(' ') }));
+};
+
+console.info = function(...args) {
+  // 안전하게 JSON 형식으로 변환
+  const safeArgs = args.map(arg => {
+    if (typeof arg === 'string') return arg;
+    return safeStringify(arg);
+  });
+  
+  originalConsoleInfo(JSON.stringify({ type: "info", message: safeArgs.join(' ') }));
+};
+
 // 디버깅을 위한 오류 출력
 process.on('uncaughtException', (err) => {
-  console.error(JSON.stringify({ type: "error", message: `Uncaught exception: ${err.message}` }));
+  console.error(`Uncaught exception: ${err.message}`);
 });
 
 // 환경 변수에서 Notion API 토큰 가져오기
