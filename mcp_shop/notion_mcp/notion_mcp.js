@@ -94,12 +94,13 @@ function initializeClient() {
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    // 최신 API 사용법에 맞게 NotionConverter 클래스 사용
+    // NotionConverter 객체 생성 시 콘솔에 직접 출력되지 않도록 수정
     n2m = new notionToMd.NotionConverter({ notionClient: notion });
+    // 디버그 출력에 객체 자체를 포함하지 않도록 수정
     console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
   } catch (error) {
-    console.error(JSON.stringify({ type: "error", message: `Notion client initialization error: ${error}` }));
+    console.error(JSON.stringify({ type: "error", message: `Notion client initialization error: ${error.message || String(error)}` }));
     return false;
   }
 }
@@ -117,13 +118,18 @@ async function formatResponse(data, format = 'json') {
         const markdownResults = [];
         for (const item of data) {
           if (item.object === 'page') {
-            const mdBlocks = await n2m.pageToMarkdown(item.id);
-            const mdString = n2m.toMarkdownString(mdBlocks);
-            markdownResults.push({
-              id: item.id,
-              title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
-              content: mdString.parent
-            });
+            try {
+              const mdBlocks = await n2m.pageToMarkdown(item.id);
+              const mdString = n2m.toMarkdownString(mdBlocks);
+              markdownResults.push({
+                id: item.id,
+                title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
+                content: mdString.parent
+              });
+            } catch (err) {
+              console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
+              markdownResults.push(item);
+            }
           } else {
             markdownResults.push(item);
           }
@@ -131,13 +137,18 @@ async function formatResponse(data, format = 'json') {
         return markdownResults;
       } else if (data.object === 'page') {
         // 단일 페이지인 경우
-        const mdBlocks = await n2m.pageToMarkdown(data.id);
-        const mdString = n2m.toMarkdownString(mdBlocks);
-        return {
-          id: data.id,
-          title: data.properties?.title?.title?.[0]?.text?.content || 'Untitled',
-          content: mdString.parent
-        };
+        try {
+          const mdBlocks = await n2m.pageToMarkdown(data.id);
+          const mdString = n2m.toMarkdownString(mdBlocks);
+          return {
+            id: data.id,
+            title: data.properties?.title?.title?.[0]?.text?.content || 'Untitled',
+            content: mdString.parent
+          };
+        } catch (err) {
+          console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
+          return data;
+        }
       } else if (data.object === 'list' && data.results) {
         // 리스트 결과인 경우
         const results = await Promise.all(data.results.map(async (item) => {
@@ -151,6 +162,7 @@ async function formatResponse(data, format = 'json') {
                 content: mdString.parent
               };
             } catch (error) {
+              console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${error.message || String(error)}` }));
               return item;
             }
           }
@@ -162,7 +174,8 @@ async function formatResponse(data, format = 'json') {
         };
       }
     } catch (error) {
-      console.error('Markdown conversion error:', error);
+      // 오류 출력도 JSON 형식으로 변경
+      console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${error.message || String(error)}` }));
     }
   }
   return data;
