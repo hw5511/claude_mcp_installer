@@ -34,6 +34,10 @@
     ],
     "tools": [
         {
+            "name": "initialize",
+            "description": "클라이언트와 서버 간 초기 연결을 설정합니다."
+        },
+        {
             "name": "notion_create_page",
             "description": "Notion에 새 페이지를 생성합니다."
         },

@@ -49,6 +49,7 @@ class NotionMCP:
         
         # 메소드 및 도구 매핑
         self.methods = {
+            "initialize": self.initialize,
             "notion_create_page": self.notion_create_page,
             "notion_save_content_to_page": self.notion_save_content_to_page,
             "notion_query_database": self.notion_query_database,
@@ -56,6 +57,36 @@ class NotionMCP:
             "notion_get_page_content": self.notion_get_page_content,
             "notion_get_subpages": self.notion_get_subpages
         }
+
+    def initialize(self, protocolVersion: str, capabilities: Dict[str, Any] = None, clientInfo: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        클라이언트 초기화 요청을 처리합니다.
+        
+        Args:
+            protocolVersion: 프로토콜 버전
+            capabilities: 클라이언트 기능 (선택 사항)
+            clientInfo: 클라이언트 정보 (선택 사항)
+            
+        Returns:
+            Dict[str, Any]: 초기화 응답
+        """
+        try:
+            logger.info(f"클라이언트 초기화: 프로토콜 버전 {protocolVersion}")
+            
+            if clientInfo:
+                logger.info(f"클라이언트 정보: {clientInfo.get('name', 'unknown')}, 버전 {clientInfo.get('version', 'unknown')}")
+            
+            # 초기화 성공 응답
+            return {
+                "serverInfo": {
+                    "name": "notion-mcp-server",
+                    "version": "1.0.0"
+                },
+                "capabilities": {}
+            }
+        except Exception as e:
+            logger.error(f"초기화 중 오류 발생: {str(e)}")
+            raise Exception(f"초기화 실패: {str(e)}")
 
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
