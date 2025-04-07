@@ -1,4 +1,5 @@
 const { Client } = require("@notionhq/client");
+// 알파 버전의 올바른 패키지 API를 사용
 const notionToMd = require("notion-to-md");
 const base64 = require("base64-js");
 
@@ -93,7 +94,8 @@ function initializeClient() {
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    n2m = new notionToMd.NotionToMd({ notionClient: notion });
+    // 최신 API 사용법에 맞게 NotionConverter 클래스 사용
+    n2m = new notionToMd.NotionConverter({ notionClient: notion });
     console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
   } catch (error) {
