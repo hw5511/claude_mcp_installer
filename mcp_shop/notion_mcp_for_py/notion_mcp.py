@@ -612,8 +612,16 @@ def main():
     notion_mcp = NotionMCP()
     
     # 표준 입력에서 줄 단위로 JSON-RPC 요청 읽기
-    for line in sys.stdin:
+    while True:
         try:
+            # 한 줄 읽기
+            line = sys.stdin.readline()
+            
+            # EOF 처리 - 서버 종료
+            if not line:
+                logger.info("입력 스트림 종료, 서버 종료")
+                break
+                
             # 빈 줄 무시
             if not line.strip():
                 continue
