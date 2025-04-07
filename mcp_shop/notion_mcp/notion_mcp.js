@@ -143,8 +143,9 @@ class MCP {
     console.error(JSON.stringify({ type: "info", message: `${this.name} MCP server starting...` }));
     console.error(JSON.stringify({ type: "debug", message: `${this.name} MCP server registered tools: ${this.tools.length}` }));
     
-    // 아래 간단한 서버 모킹은 Claude 데스크톱에 필요하지 않지만, 
-    // 독립 실행 시 이 코드가 실행될 수 있도록 기본 구현 제공
+    // 아래 간단한 서버 모킹은 Claude 데스크톱에 필요하지 않고 오히려 초기화 응답을 방해함
+    // 데스크톱 앱이 자체적으로 초기화 응답을 처리하도록 이 로직을 제거
+    /*
     try {
       if (typeof process !== 'undefined' && typeof process.send === 'function') {
         process.on('message', (message) => {
@@ -171,6 +172,7 @@ class MCP {
     } catch (err) {
       console.error(JSON.stringify({ type: "error", message: `Message handler setup error: ${err}` }));
     }
+    */
     
     return Promise.resolve();
   }
