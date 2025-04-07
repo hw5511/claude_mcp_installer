@@ -29,7 +29,8 @@
         "페이지 생성 및 관리",
         "데이터베이스 쿼리 및 관리",
         "Notion 페이지를 마크다운으로 내보내기",
-        "콘텐츠 조회 및 업데이트"
+        "콘텐츠 조회 및 업데이트",
+        "하위페이지 조회 및 관리"
     ],
     "tools": [
         {
@@ -38,7 +39,7 @@
         },
         {
             "name": "notion_save_content_to_page",
-            "description": "Notion 페이지에 내용을 저장합니다."
+            "description": "마크다운 형식으로 Notion 페이지에 내용을 저장합니다."
         },
         {
             "name": "notion_query_database",
@@ -50,15 +51,11 @@
         },
         {
             "name": "notion_get_page_content",
-            "description": "Notion 페이지 내용을 조회합니다."
+            "description": "Notion 페이지 내용을 마크다운 형식으로 조회합니다."
         },
         {
-            "name": "notion_create_database",
-            "description": "Notion에 새 데이터베이스를 생성합니다."
-        },
-        {
-            "name": "notion_export_to_markdown",
-            "description": "Notion 페이지를 마크다운으로 내보냅니다."
+            "name": "notion_get_subpages",
+            "description": "Notion 페이지의 하위 페이지 목록을 조회합니다."
         }
     ]
 } 
