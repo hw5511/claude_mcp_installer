@@ -487,6 +487,23 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                 
                 # 1. 스크립트 파일 경로 검증
                 if 'args' in server_config:
+                    # args 배열이 비어있는지 확인
+                    if not server_config['args']:
+                        print(f"경고: 서버 '{mcp_name}'의 args 배열이 비어 있습니다. 자동으로 경로를 할당합니다.")
+                        # 복사된 스크립트 파일 중에서 Python 파일 찾기
+                        for script_file in copied_script_files:
+                            if script_file.endswith('.py'):
+                                # 경로 형식 맞추기
+                                script_path = os.path.join(mcp_scripts_path, script_file).replace('\\', '\\\\')
+                                server_config['args'] = [script_path]
+                                print(f"args 배열에 추가된 경로: {script_path}")
+                                
+                                # 설정 파일 업데이트
+                                config['mcpServers'][mcp_name]['args'] = server_config['args']
+                                with open(config_file, 'w', encoding='utf-8') as f:
+                                    json.dump(config, f, indent=2)
+                                break
+                    
                     for arg in server_config['args']:
                         if isinstance(arg, str) and (arg.endswith('.py') or arg.endswith('.js')):
                             # 상대 경로를 절대 경로로 변환
