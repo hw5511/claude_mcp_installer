@@ -185,12 +185,61 @@ function initializeClient() {
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    // NotionConverter 객체 생성 시 콘솔 조작을 제거하고 직접 초기화
-    n2m = new notionToMd.NotionConverter({ notionClient: notion });
+    
+    // 원본 stdout/stderr 쓰기 함수 저장
+    const originalStdoutWrite = process.stdout.write;
+    const originalStderrWrite = process.stderr.write;
+
+    // 특정 로그를 필터링하는 임시 쓰기 함수
+    const suppressNotionToMdLogs = (writeFunc) => function(chunk, encoding, callback) {
+      const str = typeof chunk === 'string' ? chunk : chunk.toString();
+      // 오류 로그에서 확인된, notion-to-md에서 출력하는 것으로 보이는 문자열 패턴들
+      const unwantedPatterns = [
+        "[NotionConv",
+        "fetchPagePr",
+        "fetchCommen",
+        "maxRequest",
+        "batchSize:",
+        "trackMediaBl",
+        "trackPageRef",
+        "}" // 마지막 줄바꿈 없는 '}' 출력도 확인됨
+      ];
+
+      // 원치 않는 패턴으로 시작하거나 완전히 일치하는 경우 출력하지 않음
+      if (unwantedPatterns.some(pattern => str.includes(pattern) || str.trim() === pattern)) {
+        // 로그를 출력하지 않고 콜백이 있으면 호출
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return true; // 쓰기 성공으로 처리 (하지만 실제로는 쓰지 않음)
+      }
+
+      // 그 외의 경우는 원본 쓰기 함수 호출
+      return writeFunc.apply(process.stdout, arguments);
+    };
+
+    // NotionConverter 생성 직전에 stdout/stderr.write 함수를 임시 함수로 교체
+    process.stdout.write = suppressNotionToMdLogs(originalStdoutWrite);
+    process.stderr.write = suppressNotionToMdLogs(originalStderrWrite);
+
+    try {
+      // NotionConverter 객체 생성 (이 시점에 로그 출력이 발생할 것으로 예상)
+      n2m = new notionToMd.NotionConverter({ notionClient: notion });
+    } finally {
+      // 생성 후 즉시 원본 함수로 복원! (매우 중요)
+      process.stdout.write = originalStdoutWrite;
+      process.stderr.write = originalStderrWrite;
+    }
     
     console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
   } catch (error) {
+    // 만약 try 블록 내에서 stdout/stderr가 교체된 상태에서 오류가 발생한 경우를 대비
+    if (process.stdout.write !== originalStdoutWrite || process.stderr.write !== originalStderrWrite) {
+      process.stdout.write = originalStdoutWrite;
+      process.stderr.write = originalStderrWrite;
+    }
+    
     console.error(JSON.stringify({ type: "error", message: `Notion client initialization error: ${error.message || String(error)}` }));
     return false;
   }
@@ -204,21 +253,70 @@ console.error(JSON.stringify({ type: "info", message: "Initializing server..." }
 async function formatResponse(data, format = 'json') {
   if (format === 'markdown' && MARKDOWN_CONVERSION && data) {
     try {
+      // 마크다운 변환 중에 stdout/stderr 출력을 필터링하는 헬퍼 함수
+      const withSuppressedOutput = async (fn) => {
+        // 원본 stdout/stderr 쓰기 함수 저장
+        const originalStdoutWrite = process.stdout.write;
+        const originalStderrWrite = process.stderr.write;
+
+        // 특정 로그를 필터링하는 임시 쓰기 함수
+        const suppressNotionToMdLogs = (writeFunc) => function(chunk, encoding, callback) {
+          const str = typeof chunk === 'string' ? chunk : chunk.toString();
+          // 오류 로그에서 확인된, notion-to-md에서 출력하는 것으로 보이는 문자열 패턴들
+          const unwantedPatterns = [
+            "[NotionConv",
+            "fetchPagePr",
+            "fetchCommen",
+            "maxRequest",
+            "batchSize:",
+            "trackMediaBl",
+            "trackPageRef",
+            "}" // 마지막 줄바꿈 없는 '}' 출력도 확인됨
+          ];
+
+          // 원치 않는 패턴으로 시작하거나 완전히 일치하는 경우 출력하지 않음
+          if (unwantedPatterns.some(pattern => str.includes(pattern) || str.trim() === pattern)) {
+            // 로그를 출력하지 않고 콜백이 있으면 호출
+            if (typeof callback === 'function') {
+              callback();
+            }
+            return true; // 쓰기 성공으로 처리 (하지만 실제로는 쓰지 않음)
+          }
+
+          // 그 외의 경우는 원본 쓰기 함수 호출
+          return writeFunc.apply(process.stdout, arguments);
+        };
+        
+        // stdout/stderr.write 함수를 임시 함수로 교체
+        process.stdout.write = suppressNotionToMdLogs(originalStdoutWrite);
+        process.stderr.write = suppressNotionToMdLogs(originalStderrWrite);
+        
+        try {
+          return await fn();
+        } finally {
+          // 함수 실행 후 즉시 원본 함수로 복원
+          process.stdout.write = originalStdoutWrite;
+          process.stderr.write = originalStderrWrite;
+        }
+      };
+      
       if (Array.isArray(data)) {
         // 배열인 경우 각 항목을 마크다운으로 변환
         const markdownResults = [];
         for (const item of data) {
           if (item.object === 'page') {
             try {
-              // 콘솔 조작 없이 직접 마크다운 변환 실행
-              const mdBlocks = await n2m.pageToMarkdown(item.id);
-              const mdString = n2m.toMarkdownString(mdBlocks);
-              
-              markdownResults.push({
-                id: item.id,
-                title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
-                content: mdString.parent
+              // stdout/stderr 출력 필터링과 함께 마크다운 변환 실행
+              const result = await withSuppressedOutput(async () => {
+                const mdBlocks = await n2m.pageToMarkdown(item.id);
+                const mdString = n2m.toMarkdownString(mdBlocks);
+                return {
+                  id: item.id,
+                  title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
+                  content: mdString.parent
+                };
               });
+              markdownResults.push(result);
             } catch (err) {
               console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
               markdownResults.push(item);
@@ -231,15 +329,17 @@ async function formatResponse(data, format = 'json') {
       } else if (data.object === 'page') {
         // 단일 페이지인 경우
         try {
-          // 콘솔 조작 없이 직접 마크다운 변환 실행
-          const mdBlocks = await n2m.pageToMarkdown(data.id);
-          const mdString = n2m.toMarkdownString(mdBlocks);
-          
-          return {
-            id: data.id,
-            title: data.properties?.title?.title?.[0]?.text?.content || 'Untitled',
-            content: mdString.parent
-          };
+          // stdout/stderr 출력 필터링과 함께 마크다운 변환 실행
+          return await withSuppressedOutput(async () => {
+            const mdBlocks = await n2m.pageToMarkdown(data.id);
+            const mdString = n2m.toMarkdownString(mdBlocks);
+            
+            return {
+              id: data.id,
+              title: data.properties?.title?.title?.[0]?.text?.content || 'Untitled',
+              content: mdString.parent
+            };
+          });
         } catch (err) {
           console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${err.message || String(err)}` }));
           return data;
@@ -249,15 +349,17 @@ async function formatResponse(data, format = 'json') {
         const results = await Promise.all(data.results.map(async (item) => {
           if (item.object === 'page') {
             try {
-              // 콘솔 조작 없이 직접 마크다운 변환 실행
-              const mdBlocks = await n2m.pageToMarkdown(item.id);
-              const mdString = n2m.toMarkdownString(mdBlocks);
-              
-              return {
-                id: item.id,
-                title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
-                content: mdString.parent
-              };
+              // stdout/stderr 출력 필터링과 함께 마크다운 변환 실행
+              return await withSuppressedOutput(async () => {
+                const mdBlocks = await n2m.pageToMarkdown(item.id);
+                const mdString = n2m.toMarkdownString(mdBlocks);
+                
+                return {
+                  id: item.id,
+                  title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',
+                  content: mdString.parent
+                };
+              });
             } catch (error) {
               console.error(JSON.stringify({ type: "error", message: `Markdown conversion error: ${error.message || String(error)}` }));
               return item;
