@@ -1,5 +1,5 @@
 const { Client } = require("@notionhq/client");
-const { NotionToMarkdown } = require("notion-to-md");
+const notionToMd = require("notion-to-md");
 const base64 = require("base64-js");
 
 // 디버깅을 위한 오류 출력
@@ -93,7 +93,7 @@ function initializeClient() {
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
-    n2m = new NotionToMarkdown({ notionClient: notion });
+    n2m = new notionToMd.NotionToMd({ notionClient: notion });
     console.error(JSON.stringify({ type: "debug", message: 'Notion client initialized successfully' }));
     return true;
   } catch (error) {
