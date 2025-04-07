@@ -5,7 +5,8 @@
       "{MCP_SCRIPTS_DIR}\\notion_mcp.js"
     ],
     "env": {
-      "NOTION_API_TOKEN": "[TOKEN_PLACEHOLDER]"
+      "NOTION_API_TOKEN": "[TOKEN_PLACEHOLDER]",
+      "NOTION_MARKDOWN_CONVERSION": "true"
     }
   }
 } 

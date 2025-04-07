@@ -9,6 +9,7 @@
   "dependencies": {
     "@modelcontextprotocol/core": "^1.0.0",
     "@notionhq/client": "^2.2.14",
-    "notion-to-md": "^3.1.1"
+    "notion-to-md": "^3.1.1",
+    "base64-js": "^1.5.1"
   }
 } 
