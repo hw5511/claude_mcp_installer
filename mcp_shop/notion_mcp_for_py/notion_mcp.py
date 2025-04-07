@@ -1193,25 +1193,113 @@ mcp.register_tool({
 
 # 서버 시작 및 유지
 if __name__ == "__main__":
-    print(json.dumps({"type": "info", "message": "서버 초기화 중..."}))
+    print(json.dumps({"type": "info", "message": "서버 초기화 중..."}), file=sys.stderr)
     
     try:
         # 서버 시작
         if mcp.start():
-            print(json.dumps({"type": "info", "message": "서버가 성공적으로 시작되었습니다."}))
+            print(json.dumps({"type": "info", "message": "서버가 성공적으로 시작되었습니다."}), file=sys.stderr)
             
-            # 서버 유지
-            print(json.dumps({"type": "debug", "message": "서버 유지 모드 활성화"}))
+            # JSON-RPC 처리를 위한 코드
+            # 표준 입력에서 메시지 읽기
+            def read_request_from_stdin():
+                line = sys.stdin.readline()
+                if not line:
+                    return None
+                return json.loads(line)
             
-            # 종료 시그널을 받을 때까지 프로세스 유지
-            try:
-                import time
-                while True:
-                    time.sleep(30)
-                    print(json.dumps({"type": "debug", "message": "서버 실행 중..."}))
-            except KeyboardInterrupt:
-                print(json.dumps({"type": "info", "message": "서버가 종료됩니다."}))
+            # 표준 출력으로 응답 보내기
+            def send_response(response):
+                sys.stdout.write(json.dumps(response) + "\n")
+                sys.stdout.flush()
+            
+            # 메서드 처리
+            def handle_method(request):
+                method = request.get("method")
+                params = request.get("params", {})
+                request_id = request.get("id")
+                
+                print(json.dumps({"type": "info", "message": f"Message from client: {json.dumps(request)}"}), file=sys.stderr)
+                
+                # initialize 메서드 처리
+                if method == "initialize":
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "result": {
+                            "protocolVersion": "2024-11-05",
+                            "name": "notion_py",
+                            "version": "1.0.0",
+                            "capabilities": {
+                                "tools": mcp.tools
+                            }
+                        }
+                    }
+                    return response
+                # notifications 메서드 처리
+                elif method.startswith("notifications/"):
+                    # 알림은 응답이 필요 없음
+                    return None
+                # tool 메서드 호출 처리
+                elif method.startswith("tools/"):
+                    tool_name = method.split("/")[1]
+                    if tool_name in mcp._tool_registry:
+                        tool = mcp._tool_registry[tool_name]
+                        handler = tool.get("handler")
+                        if handler:
+                            result = handler(**params)
+                            response = {
+                                "jsonrpc": "2.0",
+                                "id": request_id,
+                                "result": result
+                            }
+                            return response
+                    
+                    # 도구를 찾지 못했거나 처리에 실패한 경우
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "error": {
+                            "code": -32601,
+                            "message": f"Method not found: {method}"
+                        }
+                    }
+                    return response
+                # 기타 메서드 (아직 구현되지 않음)
+                else:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": request_id,
+                        "result": {}  # 일단 빈 결과로 응답
+                    }
+                    return response
+            
+            # 메인 루프
+            while True:
+                try:
+                    request = read_request_from_stdin()
+                    if request is None:
+                        break
+                    
+                    print(json.dumps({"type": "debug", "message": f"Request received: {request.get('method', 'unknown')}"}), file=sys.stderr)
+                    
+                    response = handle_method(request)
+                    if response:  # notifications는 응답이 없음
+                        send_response(response)
+                except Exception as e:
+                    print(json.dumps({"type": "error", "message": f"Error processing request: {str(e)}"}), file=sys.stderr)
+                    
+                    # 오류 응답
+                    error_response = {
+                        "jsonrpc": "2.0",
+                        "id": request.get("id") if 'request' in locals() else None,
+                        "error": {
+                            "code": -32603,
+                            "message": f"Internal error: {str(e)}"
+                        }
+                    }
+                    send_response(error_response)
         else:
-            print(json.dumps({"type": "error", "message": "서버 시작 실패"}))
+            print(json.dumps({"type": "error", "message": "서버 시작 실패"}), file=sys.stderr)
     except Exception as e:
-        print(json.dumps({"type": "error", "message": f"서버 오류: {str(e)}"})) 
+        print(json.dumps({"type": "error", "message": f"서버 오류: {str(e)}"}), file=sys.stderr) 
