@@ -493,13 +493,13 @@ def install_mcp_template(mcp_name, mcp_dir=None):
     
     # 1. MCP 스크립트 파일 복사
     mcp_scripts_path = os.path.join(os.environ['APPDATA'], 'Claude', 'mcp_scripts')
-    py_files = [f for f in os.listdir(mcp_dir) if f.endswith('.py')]
+    script_files = [f for f in os.listdir(mcp_dir) if f.endswith('.py') or f.endswith('.js')]
     
-    for py_file in py_files:
-        src_file = os.path.join(mcp_dir, py_file)
-        dest_file = os.path.join(mcp_scripts_path, py_file)
+    for script_file in script_files:
+        src_file = os.path.join(mcp_dir, script_file)
+        dest_file = os.path.join(mcp_scripts_path, script_file)
         shutil.copy(src_file, dest_file)
-        print(TEXTS[LANG]['file_copied'].format(py_file))
+        print(TEXTS[LANG]['file_copied'].format(script_file))
     
     # 2. config.json 업데이트
     config_template_files = [f for f in os.listdir(mcp_dir) if f.endswith('_config_template.json')]
