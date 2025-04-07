@@ -374,10 +374,22 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                     for server_name, server_config in template_config.items():
                         # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
                         if 'args' in server_config:
-                            server_config['args'] = [
-                                arg.replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path.replace("\\", "\\\\"))
-                                for arg in server_config['args']
-                            ]
+                            # 운영체제별 경로 구분자 처리를 개선
+                            # Windows에서는 백슬래시를 사용하고, JSON 이스케이프를 위해 이중 백슬래시로 변환
+                            mcp_scripts_path_formatted = mcp_scripts_path.replace("\\", "\\\\")
+                            
+                            # 경로 구분자 표준화: 백슬래시를 사용하도록 변경
+                            server_config['args'] = []
+                            for arg in template_config[server_name]['args']:
+                                # {MCP_SCRIPTS_DIR} 플레이스홀더 교체
+                                if "{MCP_SCRIPTS_DIR}" in arg:
+                                    # 슬래시나 백슬래시 모두 백슬래시로 표준화
+                                    arg = arg.replace("/", "\\\\").replace("{MCP_SCRIPTS_DIR}", mcp_scripts_path_formatted)
+                                    if not arg.endswith(".py") and not arg.endswith(".js"):
+                                        # 경로 끝에 파일 확장자가 없는 경우 처리
+                                        if not arg.endswith("\\\\"):
+                                            arg = arg + "\\\\"
+                                server_config['args'].append(arg)
                             
                             # 스크립트 경로 검증
                             for arg in server_config['args']:
