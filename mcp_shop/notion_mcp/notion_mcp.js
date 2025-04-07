@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 const { Client } = require("@notionhq/client");
-const { NotionToMarkdown } = require("notion-to-md");
+const notionToMd = require("notion-to-md");
 const base64 = require("base64-js");
 
 // 디버깅을 위한 오류 출력
 process.on('uncaughtException', (err) => {
-  console.error('치명적인 오류 발생:', err);
+  console.error('Uncaught exception:', err);
 });
 
 // 환경 변수에서 Notion API 토큰 가져오기
@@ -23,12 +23,12 @@ class MCP {
     this.name = name;
     this.tools = [];
     this._toolRegistry = {};
-    console.error('디버그: MCP 클래스 초기화됨, 이름:', name);
+    console.error('Debug: MCP class initialized, name:', name);
   }
 
   registerTool(tool) {
     try {
-      console.error('디버그: 도구 등록 시도:', tool.name);
+      console.error('Debug: Registering tool:', tool.name);
       this.tools.push(tool);
       this._toolRegistry[tool.name] = tool;
       
@@ -36,22 +36,22 @@ class MCP {
       try {
         if (typeof global !== 'undefined' && global.__register_tool) {
           global.__register_tool(tool);
-          console.error('디버그: global.__register_tool 성공:', tool.name);
+          console.error('Debug: global.__register_tool success:', tool.name);
         } else {
-          console.error('디버그: global.__register_tool 없음, 내부 레지스트리 사용');
+          console.error('Debug: global.__register_tool not found, using internal registry');
         }
       } catch (err) {
         // 오류 무시하고 계속 진행
-        console.error('디버그: global.__register_tool 오류:', err.message);
+        console.error('Debug: global.__register_tool error:', err.message);
       }
     } catch (error) {
-      console.error('디버그: 도구 등록 오류:', error);
+      console.error('Debug: Tool registration error:', error);
     }
   }
 
   start() {
-    console.info(`${this.name} MCP 서버 시작 중...`);
-    console.error(`디버그: ${this.name} MCP 서버 등록된 도구 수: ${this.tools.length}`);
+    console.info(`${this.name} MCP server starting...`);
+    console.error(`Debug: ${this.name} MCP server registered tools: ${this.tools.length}`);
     
     // 아래 간단한 서버 모킹은 Claude 데스크톱에 필요하지 않지만, 
     // 독립 실행 시 이 코드가 실행될 수 있도록 기본 구현 제공
@@ -60,9 +60,9 @@ class MCP {
         process.on('message', (message) => {
           try {
             if (message && message.jsonrpc === '2.0') {
-              console.error('디버그: 메시지 수신:', message.method || '메서드 없음');
+              console.error('Debug: Message received:', message.method || 'no method');
               if (message.method === 'initialize') {
-                console.error('디버그: 초기화 응답 전송');
+                console.error('Debug: Sending initialize response');
                 process.send({
                   jsonrpc: '2.0',
                   id: message.id,
@@ -74,12 +74,12 @@ class MCP {
               // 다른 메서드 처리...
             }
           } catch (err) {
-            console.error('디버그: 메시지 처리 오류:', err);
+            console.error('Debug: Message processing error:', err);
           }
         });
       }
     } catch (err) {
-      console.error('디버그: 메시지 핸들러 설정 오류:', err);
+      console.error('Debug: Message handler setup error:', err);
     }
     
     return Promise.resolve();
@@ -89,24 +89,25 @@ class MCP {
 // 초기화 함수
 function initializeClient() {
   if (!NOTION_API_TOKEN) {
-    console.error('NOTION_API_TOKEN 환경 변수가 설정되지 않았습니다.');
+    console.error('NOTION_API_TOKEN environment variable is not set.');
     return false;
   }
 
   try {
     notion = new Client({ auth: NOTION_API_TOKEN });
+    const NotionToMarkdown = notionToMd.NotionToMarkdown;
     n2m = new NotionToMarkdown({ notionClient: notion });
-    console.error('디버그: Notion 클라이언트 초기화 성공');
+    console.error('Debug: Notion client initialized successfully');
     return true;
   } catch (error) {
-    console.error('Notion 클라이언트 초기화 오류:', error);
+    console.error('Notion client initialization error:', error);
     return false;
   }
 }
 
 // MCP 서버 초기화
 const mcp = new MCP("notion");
-console.info("서버 초기화 중...");
+console.info("Initializing server...");
 
 // 응답 처리 함수
 async function formatResponse(data, format = 'json') {
@@ -162,7 +163,7 @@ async function formatResponse(data, format = 'json') {
         };
       }
     } catch (error) {
-      console.error('마크다운 변환 오류:', error);
+      console.error('Markdown conversion error:', error);
     }
   }
   return data;
@@ -171,41 +172,41 @@ async function formatResponse(data, format = 'json') {
 // 도구 등록: 페이지 생성
 mcp.registerTool({
   name: 'notion_create_page',
-  description: 'Notion에 새 페이지를 생성합니다',
+  description: 'Create a new page in Notion',
   parameters: {
     parent: {
       type: 'object',
-      description: '새 페이지의 부모 (데이터베이스 또는 페이지)',
+      description: 'Parent of the new page (database or page)',
       required: true
     },
     properties: {
       type: 'object',
-      description: '페이지 속성 (제목 등)',
+      description: 'Page properties (title, etc.)',
       required: true
     },
     children: {
       type: 'array',
-      description: '페이지 내용 블록 배열',
+      description: 'Page content blocks array',
       required: false
     },
     icon: {
       type: 'object',
-      description: '페이지 아이콘',
+      description: 'Page icon',
       required: false
     },
     cover: {
       type: 'object',
-      description: '페이지 커버 이미지',
+      description: 'Page cover image',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ parent, properties, children, icon, cover, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const params = {
@@ -228,26 +229,26 @@ mcp.registerTool({
 // 도구 등록: 페이지에 내용 저장
 mcp.registerTool({
   name: 'notion_save_content_to_page',
-  description: 'Notion 페이지에 내용을 저장합니다',
+  description: 'Save content to a Notion page',
   parameters: {
     page_id: {
       type: 'string',
-      description: '내용을 저장할 페이지 ID',
+      description: 'ID of the page to save content to',
       required: true
     },
     children: {
       type: 'array',
-      description: '페이지 내용 블록 배열',
+      description: 'Page content blocks array',
       required: true
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ page_id, children, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       // 블록 추가를 위해 여러 번 API 호출 (Notion API 제한)
@@ -273,41 +274,41 @@ mcp.registerTool({
 // 도구 등록: 데이터베이스 쿼리
 mcp.registerTool({
   name: 'notion_query_database',
-  description: 'Notion 데이터베이스를 쿼리합니다',
+  description: 'Query a Notion database',
   parameters: {
     database_id: {
       type: 'string',
-      description: '쿼리할 데이터베이스 ID',
+      description: 'ID of the database to query',
       required: true
     },
     filter: {
       type: 'object',
-      description: '필터 조건',
+      description: 'Filter conditions',
       required: false
     },
     sorts: {
       type: 'array',
-      description: '정렬 조건 배열',
+      description: 'Sort conditions array',
       required: false
     },
     start_cursor: {
       type: 'string',
-      description: '페이징 커서',
+      description: 'Pagination cursor',
       required: false
     },
     page_size: {
       type: 'number',
-      description: '페이지 크기',
+      description: 'Page size',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ database_id, filter, sorts, start_cursor, page_size, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const params = {
@@ -330,21 +331,21 @@ mcp.registerTool({
 // 도구 등록: 페이지 정보 조회
 mcp.registerTool({
   name: 'notion_get_page',
-  description: 'Notion 페이지 정보를 조회합니다',
+  description: 'Retrieve Notion page information',
   parameters: {
     page_id: {
       type: 'string',
-      description: '조회할 페이지 ID',
+      description: 'ID of the page to retrieve',
       required: true
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ page_id, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const response = await notion.pages.retrieve({ page_id });
@@ -358,31 +359,31 @@ mcp.registerTool({
 // 도구 등록: 페이지 내용 조회
 mcp.registerTool({
   name: 'notion_get_page_content',
-  description: 'Notion 페이지 내용을 조회합니다',
+  description: 'Retrieve Notion page content',
   parameters: {
     page_id: {
       type: 'string',
-      description: '내용을 조회할 페이지 ID',
+      description: 'ID of the page to retrieve content from',
       required: true
     },
     start_cursor: {
       type: 'string',
-      description: '페이징 커서',
+      description: 'Pagination cursor',
       required: false
     },
     page_size: {
       type: 'number',
-      description: '페이지 크기',
+      description: 'Page size',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ page_id, start_cursor, page_size, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const params = {
@@ -403,41 +404,41 @@ mcp.registerTool({
 // 도구 등록: 데이터베이스 생성
 mcp.registerTool({
   name: 'notion_create_database',
-  description: 'Notion에 새 데이터베이스를 생성합니다',
+  description: 'Create a new database in Notion',
   parameters: {
     parent: {
       type: 'object',
-      description: '데이터베이스의 부모 페이지',
+      description: 'Parent page of the database',
       required: true
     },
     title: {
       type: 'array',
-      description: '데이터베이스 제목',
+      description: 'Database title',
       required: true
     },
     properties: {
       type: 'object',
-      description: '데이터베이스 속성 정의',
+      description: 'Database property definitions',
       required: true
     },
     icon: {
       type: 'object',
-      description: '데이터베이스 아이콘',
+      description: 'Database icon',
       required: false
     },
     cover: {
       type: 'object',
-      description: '데이터베이스 커버 이미지',
+      description: 'Database cover image',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ parent, title, properties, icon, cover, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const params = {
@@ -460,39 +461,39 @@ mcp.registerTool({
 // 댓글 작성
 mcp.registerTool({
   name: 'notion_create_comment',
-  description: 'Notion에 댓글을 작성합니다',
+  description: 'Create a comment in Notion',
   parameters: {
     rich_text: {
       type: 'array',
-      description: '댓글 내용을 담는 리치 텍스트 객체 배열',
+      description: 'Rich text objects array for comment content',
       required: true
     },
     parent: {
       type: 'object',
-      description: '댓글을 달한 부모 객체 (page_id 포함)',
+      description: 'Parent object of the comment (includes page_id)',
       required: false
     },
     discussion_id: {
       type: 'string',
-      description: '기존 토론 스레드 ID',
+      description: 'Existing discussion thread ID',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ rich_text, parent, discussion_id, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       if (!parent && !discussion_id) {
-        return { error: 'parent 또는 discussion_id 중 하나가 필요합니다' };
+        return { error: 'Either parent or discussion_id is required' };
       }
 
       if (parent && discussion_id) {
-        return { error: 'parent와 discussion_id를 동시에 지정할 수 없습니다' };
+        return { error: 'Cannot specify both parent and discussion_id' };
       }
 
       const params = {
@@ -505,7 +506,7 @@ mcp.registerTool({
       const response = await notion.comments.create(params);
       return formatResponse(response, format);
     } catch (error) {
-      return { error: error.message, note: '이 기능은 호환성을 위한 댓글 삽입 기능이 필요합니다' };
+      return { error: error.message, note: 'This feature requires the integration to have comment insertion capability' };
     }
   }
 });
@@ -513,31 +514,31 @@ mcp.registerTool({
 // 댓글 가져오기
 mcp.registerTool({
   name: 'notion_retrieve_comments',
-  description: 'Notion 페이지나 블록에 달린/연결된 댓글 목록을 가져옵니다',
+  description: 'Retrieve comments from a Notion page or block',
   parameters: {
     block_id: {
       type: 'string',
-      description: '댓글을 가져올 블록이나 페이지 ID',
+      description: 'ID of the block or page to retrieve comments from',
       required: true
     },
     start_cursor: {
       type: 'string',
-      description: '다음 페이지를 위한 커서',
+      description: 'Cursor for the next page',
       required: false
     },
     page_size: {
       type: 'number',
-      description: '결과 페이지 크기 (최대 100)',
+      description: 'Page size (max 100)',
       required: false
     },
     format: {
       type: 'string',
-      description: '응답 형식 (json 또는 markdown)',
+      description: 'Response format (json or markdown)',
       required: false
     }
   },
   handler: async ({ block_id, start_cursor, page_size, format = 'json' }) => {
-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };
+    if (!initializeClient()) return { error: 'Notion client initialization failed' };
 
     try {
       const params = {
@@ -550,39 +551,39 @@ mcp.registerTool({
       const response = await notion.comments.list(params);
       return formatResponse(response, format);
     } catch (error) {
-      return { error: error.message, note: '이 기능은 호환성을 위한 댓글 읽기 기능이 필요합니다' };
+      return { error: error.message, note: 'This feature requires the integration to have comment reading capability' };
     }
   }
 });
 
 // 서버 시작
 mcp.start().then(() => {
-  console.info("서버가 성공적으로 시작되었습니다");
-  console.error("디버그: 서버 시작 성공");
+  console.info("Server started and connected successfully");
+  console.error("Debug: Server start successful");
   
   try {
     // Notion 클라이언트 초기화
     if (!NOTION_API_TOKEN) {
-      console.error("NOTION_API_TOKEN이 설정되지 않았습니다. 환경 변수를 확인해주세요.");
+      console.error("NOTION_API_TOKEN is not set. Please check your environment variables.");
     } else {
       initializeClient();
     }
     
     // 서버가 종료되지 않도록 유지
-    console.error("디버그: 서버 유지 모드 활성화");
+    console.error("Debug: Activating server keep-alive mode");
     const interval = setInterval(() => {
-      console.error("디버그: 서버 실행 중...");
+      console.error("Debug: Server running...");
     }, 30000);
     
     // 정상적인 종료 처리
     process.on('SIGINT', () => {
-      console.error('디버그: SIGINT 신호 받음, 정상 종료 중...');
+      console.error('Debug: SIGINT signal received, shutting down gracefully...');
       clearInterval(interval);
       process.exit(0);
     });
     
     process.on('SIGTERM', () => {
-      console.error('디버그: SIGTERM 신호 받음, 정상 종료 중...');
+      console.error('Debug: SIGTERM signal received, shutting down gracefully...');
       clearInterval(interval);
       process.exit(0);
     });
@@ -593,8 +594,8 @@ mcp.start().then(() => {
     }
     
   } catch (err) {
-    console.error("초기화 오류:", err);
+    console.error("Initialization error:", err);
   }
 }).catch(err => {
-  console.error("MCP 서버 시작 오류:", err);
+  console.error("MCP server start error:", err);
 });

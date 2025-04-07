@@ -1,0 +1,547 @@
+[33mcommit 46093fa2c6b7250a5712e3f9dfd5290b3e7665c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: WOOHEE <yangheewoo5511@gmail.com>
+Date:   Tue Apr 8 00:00:07 2025 +0900
+
+    Notion MCP 오류 수정 - 패키지 의존성 문제 해결
+
+[1mdiff --git a/mcp_shop/notion_mcp/notion_mcp.js b/mcp_shop/notion_mcp/notion_mcp.js[m
+[1mindex db0d441..e69de29 100644[m
+[1m--- a/mcp_shop/notion_mcp/notion_mcp.js[m
+[1m+++ b/mcp_shop/notion_mcp/notion_mcp.js[m
+[36m@@ -1,828 +0,0 @@[m
+[31m-#!/usr/bin/env node[m
+[31m-[m
+[31m-const { Client } = require('@notionhq/client');[m
+[31m-const { NotionToMarkdown } = require('notion-to-md');[m
+[31m-const { MCP } = require('@modelcontextprotocol/core');[m
+[31m-const base64 = require('base64-js');[m
+[31m-[m
+[31m-// 환경 변수에서 Notion API 토큰 가져오기[m
+[31m-const NOTION_API_TOKEN = process.env.NOTION_API_TOKEN;[m
+[31m-const MARKDOWN_CONVERSION = process.env.NOTION_MARKDOWN_CONVERSION === 'true';[m
+[31m-[m
+[31m-// Notion 클라이언트 초기화[m
+[31m-let notion;[m
+[31m-let n2m;[m
+[31m-[m
+[31m-// 초기화 함수[m
+[31m-function initializeClient() {[m
+[31m-  if (!NOTION_API_TOKEN) {[m
+[31m-    console.error('NOTION_API_TOKEN 환경 변수가 설정되지 않았습니다.');[m
+[31m-    return false;[m
+[31m-  }[m
+[31m-  [m
+[31m-  try {[m
+[31m-    notion = new Client({ auth: NOTION_API_TOKEN });[m
+[31m-    n2m = new NotionToMarkdown({ notionClient: notion });[m
+[31m-    return true;[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Notion 클라이언트 초기화 오류:', error);[m
+[31m-    return false;[m
+[31m-  }[m
+[31m-}[m
+[31m-[m
+[31m-// MCP 서버 초기화[m
+[31m-const mcp = new MCP("notion");[m
+[31m-console.info("Initializing server...");[m
+[31m-[m
+[31m-// 응답 포맷팅 함수[m
+[31m-async function formatResponse(data, format = 'json') {[m
+[31m-  if (format === 'markdown' && MARKDOWN_CONVERSION && data) {[m
+[31m-    try {[m
+[31m-      if (Array.isArray(data)) {[m
+[31m-        // 배열일 경우 각 항목을 마크다운으로 변환[m
+[31m-        const markdownResults = [];[m
+[31m-        for (const item of data) {[m
+[31m-          if (item.object === 'page') {[m
+[31m-            const mdBlocks = await n2m.pageToMarkdown(item.id);[m
+[31m-            const mdString = n2m.toMarkdownString(mdBlocks);[m
+[31m-            markdownResults.push({[m
+[31m-              id: item.id,[m
+[31m-              title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',[m
+[31m-              content: mdString.parent[m
+[31m-            });[m
+[31m-          } else {[m
+[31m-            markdownResults.push(item);[m
+[31m-          }[m
+[31m-        }[m
+[31m-        return markdownResults;[m
+[31m-      } else if (data.object === 'page') {[m
+[31m-        // 단일 페이지일 경우[m
+[31m-        const mdBlocks = await n2m.pageToMarkdown(data.id);[m
+[31m-        const mdString = n2m.toMarkdownString(mdBlocks);[m
+[31m-        return {[m
+[31m-          id: data.id,[m
+[31m-          title: data.properties?.title?.title?.[0]?.text?.content || 'Untitled',[m
+[31m-          content: mdString.parent[m
+[31m-        };[m
+[31m-      } else if (data.object === 'list' && data.results) {[m
+[31m-        // 리스트 결과일 경우[m
+[31m-        const results = await Promise.all(data.results.map(async (item) => {[m
+[31m-          if (item.object === 'page') {[m
+[31m-            try {[m
+[31m-              const mdBlocks = await n2m.pageToMarkdown(item.id);[m
+[31m-              const mdString = n2m.toMarkdownString(mdBlocks);[m
+[31m-              return {[m
+[31m-                id: item.id,[m
+[31m-                title: item.properties?.title?.title?.[0]?.text?.content || 'Untitled',[m
+[31m-                content: mdString.parent,[m
+[31m-                url: item.url[m
+[31m-              };[m
+[31m-            } catch (e) {[m
+[31m-              return item;[m
+[31m-            }[m
+[31m-          }[m
+[31m-          return item;[m
+[31m-        }));[m
+[31m-        [m
+[31m-        return {[m
+[31m-          ...data,[m
+[31m-          results[m
+[31m-        };[m
+[31m-      }[m
+[31m-    } catch (error) {[m
+[31m-      console.error('마크다운 변환 오류:', error);[m
+[31m-    }[m
+[31m-  }[m
+[31m-  [m
+[31m-  // 기본적으로 JSON 반환[m
+[31m-  return data;[m
+[31m-}[m
+[31m-[m
+[31m-// MCP 도구 등록 - 페이지 생성[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_create_page',[m
+[31m-  description: 'Notion에 새 페이지를 생성합니다. 부모 ID(페이지 또는 데이터베이스)와 속성을 지정해야 합니다.',[m
+[31m-  parameters: {[m
+[31m-    parent: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지가 속할 부모. 데이터베이스 ID 또는 페이지 ID가 필요합니다.',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    properties: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지 속성. 부모가 데이터베이스인 경우 필수입니다.',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    children: {[m
+[31m-      type: 'array',[m
+[31m-      description: '페이지에 추가할 블록 목록',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    icon: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지 아이콘',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    cover: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지 커버 이미지',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ parent, properties, children, icon, cover, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const createPageParams = {[m
+[31m-        parent: parent,[m
+[31m-        properties: properties || {}[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (children) createPageParams.children = children;[m
+[31m-      if (icon) createPageParams.icon = icon;[m
+[31m-      if (cover) createPageParams.cover = cover;[m
+[31m-      [m
+[31m-      const response = await notion.pages.create(createPageParams);[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 페이지 내용 저장[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_update_page',[m
+[31m-  description: '기존 Notion 페이지를 업데이트합니다',[m
+[31m-  parameters: {[m
+[31m-    page_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '업데이트할 페이지의 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    properties: {[m
+[31m-      type: 'object',[m
+[31m-      description: '업데이트할 페이지 속성',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    archived: {[m
+[31m-      type: 'boolean',[m
+[31m-      description: '페이지를 보관할지 여부',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    icon: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지 아이콘',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    cover: {[m
+[31m-      type: 'object',[m
+[31m-      description: '페이지 커버 이미지',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ page_id, properties, archived, icon, cover, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const updateParams = {};[m
+[31m-      if (properties) updateParams.properties = properties;[m
+[31m-      if (archived !== undefined) updateParams.archived = archived;[m
+[31m-      if (icon) updateParams.icon = icon;[m
+[31m-      if (cover) updateParams.cover = cover;[m
+[31m-      [m
+[31m-      const response = await notion.pages.update({[m
+[31m-        page_id: page_id,[m
+[31m-        ...updateParams[m
+[31m-      });[m
+[31m-      [m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 데이터베이스 쿼리[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_query_database',[m
+[31m-  description: 'Notion 데이터베이스를 쿼리합니다',[m
+[31m-  parameters: {[m
+[31m-    database_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '쿼리할 데이터베이스 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    filter: {[m
+[31m-      type: 'object',[m
+[31m-      description: '필터 조건',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    sorts: {[m
+[31m-      type: 'array',[m
+[31m-      description: '정렬 조건',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    start_cursor: {[m
+[31m-      type: 'string',[m
+[31m-      description: '다음 페이지를 위한 커서',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    page_size: {[m
+[31m-      type: 'number',[m
+[31m-      description: '결과 페이지 크기 (최대 100)',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ database_id, filter, sorts, start_cursor, page_size, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const queryParams = {[m
+[31m-        database_id: database_id[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (filter) queryParams.filter = filter;[m
+[31m-      if (sorts) queryParams.sorts = sorts;[m
+[31m-      if (start_cursor) queryParams.start_cursor = start_cursor;[m
+[31m-      if (page_size) queryParams.page_size = page_size;[m
+[31m-      [m
+[31m-      const response = await notion.databases.query(queryParams);[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 페이지 정보 가져오기[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_retrieve_page',[m
+[31m-  description: 'Notion 페이지 정보를 가져옵니다',[m
+[31m-  parameters: {[m
+[31m-    page_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '가져올 페이지 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ page_id, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const response = await notion.pages.retrieve({ page_id });[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 페이지 내용 가져오기[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_get_page_content',[m
+[31m-  description: 'Notion 페이지의 내용을 가져옵니다',[m
+[31m-  parameters: {[m
+[31m-    page_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '내용을 가져올 페이지 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ page_id, format = 'markdown' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      // 페이지 정보 가져오기[m
+[31m-      const pageInfo = await notion.pages.retrieve({ page_id });[m
+[31m-      [m
+[31m-      // 페이지 블록 가져오기[m
+[31m-      const blocks = await n2m.pageToMarkdown(page_id);[m
+[31m-      const mdString = n2m.toMarkdownString(blocks);[m
+[31m-      [m
+[31m-      // 페이지 제목 추출[m
+[31m-      let title = 'Untitled';[m
+[31m-      if (pageInfo.properties) {[m
+[31m-        const titleProp = Object.values(pageInfo.properties).find([m
+[31m-          prop => prop.type === 'title'[m
+[31m-        );[m
+[31m-        if (titleProp && titleProp.title && titleProp.title.length > 0) {[m
+[31m-          title = titleProp.title.map(t => t.plain_text).join('');[m
+[31m-        }[m
+[31m-      }[m
+[31m-      [m
+[31m-      if (format === 'markdown') {[m
+[31m-        return {[m
+[31m-          id: page_id,[m
+[31m-          title: title,[m
+[31m-          content: mdString.parent,[m
+[31m-          url: pageInfo.url[m
+[31m-        };[m
+[31m-      } else {[m
+[31m-        return {[m
+[31m-          id: page_id,[m
+[31m-          title: title,[m
+[31m-          blocks: blocks,[m
+[31m-          info: pageInfo,[m
+[31m-          url: pageInfo.url[m
+[31m-        };[m
+[31m-      }[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 데이터베이스 생성[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_create_database',[m
+[31m-  description: 'Notion에 새 데이터베이스를 생성합니다',[m
+[31m-  parameters: {[m
+[31m-    parent: {[m
+[31m-      type: 'object',[m
+[31m-      description: '데이터베이스를 생성할 부모 페이지',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    title: {[m
+[31m-      type: 'array',[m
+[31m-      description: '데이터베이스 제목',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    properties: {[m
+[31m-      type: 'object',[m
+[31m-      description: '데이터베이스 속성 스키마',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ parent, title, properties, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const createParams = {[m
+[31m-        parent: parent,[m
+[31m-        properties: properties[m
+[31m-      };[m
+[31m-      [m
+[31m-      if (title) createParams.title = title;[m
+[31m-      [m
+[31m-      const response = await notion.databases.create(createParams);[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 데이터베이스 정보 가져오기[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_retrieve_database',[m
+[31m-  description: 'Notion 데이터베이스 정보를 가져옵니다',[m
+[31m-  parameters: {[m
+[31m-    database_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '가져올 데이터베이스 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ database_id, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const response = await notion.databases.retrieve({ database_id });[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 블록 정보 가져오기[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_retrieve_block',[m
+[31m-  description: '특정 Notion 블록에 대한 정보를 가져옵니다',[m
+[31m-  parameters: {[m
+[31m-    block_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '가져올 블록 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ block_id, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const response = await notion.blocks.retrieve({ block_id });[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 블록 자식 가져오기[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_retrieve_block_children',[m
+[31m-  description: '특정 Notion 블록의 자식 블록들을 가져옵니다',[m
+[31m-  parameters: {[m
+[31m-    block_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '부모 블록 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    start_cursor: {[m
+[31m-      type: 'string',[m
+[31m-      description: '다음 페이지를 위한 커서',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    page_size: {[m
+[31m-      type: 'number',[m
+[31m-      description: '결과 페이지 크기 (최대 100)',[m
+[31m-      required: false[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ block_id, start_cursor, page_size, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const params = { block_id };[m
+[31m-      if (start_cursor) params.start_cursor = start_cursor;[m
+[31m-      if (page_size) params.page_size = page_size;[m
+[31m-      [m
+[31m-      const response = await notion.blocks.children.list(params);[m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.message };[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// 블록 추가[m
+[31m-mcp.registerTool({[m
+[31m-  name: 'notion_append_block_children',[m
+[31m-  description: '부모 블록에 자식 블록을 추가합니다',[m
+[31m-  parameters: {[m
+[31m-    block_id: {[m
+[31m-      type: 'string',[m
+[31m-      description: '부모 블록 ID',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    children: {[m
+[31m-      type: 'array',[m
+[31m-      description: '추가할 블록 객체 배열',[m
+[31m-      required: true[m
+[31m-    },[m
+[31m-    format: {[m
+[31m-      type: 'string',[m
+[31m-      description: '응답 형식 (json 또는 markdown)',[m
+[31m-      required: false[m
+[31m-    }[m
+[31m-  },[m
+[31m-  handler: async ({ block_id, children, format = 'json' }) => {[m
+[31m-    if (!initializeClient()) return { error: 'Notion 클라이언트 초기화 실패' };[m
+[31m-    [m
+[31m-    try {[m
+[31m-      const response = await notion.blocks.children.append({[m
+[31m-        block_id,[m
+[31m-        children[m
+[31m-      });[m
+[31m-      [m
+[31m-      return formatResponse(response, format);[m
+[31m-    } catch (error) {[m
+[31m-      return { error: error.
