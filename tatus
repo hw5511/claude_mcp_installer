@@ -1,0 +1,135 @@
+[1mdiff --git a/mcp_shop/notion_mcp_for_py/notion_mcp.py b/mcp_shop/notion_mcp_for_py/notion_mcp.py[m
+[1mindex 7786219..38e2b87 100644[m
+[1m--- a/mcp_shop/notion_mcp_for_py/notion_mcp.py[m
+[1m+++ b/mcp_shop/notion_mcp_for_py/notion_mcp.py[m
+[36m@@ -5,6 +5,7 @@[m [mimport os[m
+ import sys[m
+ import json[m
+ import logging[m
+[32m+[m[32mimport re[m
+ from typing import Dict, List, Optional, Any, Union[m
+ from datetime import datetime[m
+ [m
+[36m@@ -47,6 +48,12 @@[m [mclass NotionHelper:[m
+         except Exception as e:[m
+             logger.error(f"Notion 클라이언트 초기화 실패: {e}")[m
+             sys.exit(1)[m
+[32m+[m[41m            [m
+[32m+[m[32m        # 페이지 정보 캐시[m
+[32m+[m[32m        self.page_cache = {}[m
+[32m+[m[41m        [m
+[32m+[m[32m        # 업로드 전 내용 캐시[m
+[32m+[m[32m        self.upload_cache = {}[m
+ [m
+     def _format_notion_url(self, page_id: str) -> str:[m
+         """Notion 페이지 ID를 URL 형식으로 변환합니다."""[m
+[36m@@ -72,6 +79,290 @@[m [mclass NotionHelper:[m
+         [m
+         # 이미 ID인 경우[m
+         return url_or_id.replace("-", "")[m
+[32m+[m[41m        [m
+[32m+[m[32m    def get_page_structure(self, page_id):[m
+[32m+[m[32m        """페이지 구조를 가져옵니다."""[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            children = self.client.blocks.children.list(block_id=page_id)[m
+[32m+[m[32m            pages = [][m
+[32m+[m[41m            [m
+[32m+[m[32m            for block in children.get('results', []):[m
+[32m+[m[32m                if block['type'] == 'child_page':[m
+[32m+[m[32m                    page_info = {[m
+[32m+[m[32m                        'id': block['id'],[m
+[32m+[m[32m                        'title': block['child_page']['title'],[m
+[32m+[m[32m                        'has_children': False[m
+[32m+[m[32m                    }[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    # 하위 페이지 확인[m
+[32m+[m[32m                    sub_pages = self.client.blocks.children.list(block_id=block['id'])[m
+[32m+[m[32m                    if sub_pages['results']:[m
+[32m+[m[32m                        page_info['has_children'] = True[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    pages.append(page_info)[m
+[32m+[m[32m                    self.page_cache[block['id']] = page_info[m
+[32m+[m[41m                    [m
+[32m+[m[32m            return pages[m
+[32m+[m[41m            [m
+[32m+[m[32m        except Exception as e:[m
+[32m+[m[32m            logger.error(f"페이지 구조 조회 중 오류 발생: {str(e)}")[m
+[32m+[m[32m            return [][m
+[32m+[m[41m            [m
+[32m+[m[32m    def verify_upload(self, page_id, original_blocks):[m
+[32m+[m[32m        """업로드된 내용을 검증합니다."""[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            current_blocks = self.client.blocks.children.list(block_id=page_id).get("results", [])[m
+[32m+[m[41m            [m
+[32m+[m[32m            if len(original_blocks) != len(current_blocks):[m
+[32m+[m[32m                logger.warning(f"⚠️ 블록 수가 다릅니다: 원본 {len(original_blocks)}개, 현재 {len(current_blocks)}개")[m
+[32m+[m[41m                [m
+[32m+[m[32m            # 내용 비교[m
+[32m+[m[32m            for i, orig_block in enumerate(original_blocks):[m
+[32m+[m[32m                if i < len(current_blocks):[m
+[32m+[m[32m                    curr_block = current_blocks[i][m
+[32m+[m[41m                    [m
+[32m+[m[32m                    # 블록 타입 확인[m
+[32m+[m[32m                    if orig_block["type"] != curr_block["type"]:[m
+[32m+[m[32m                        logger.warning(f"⚠️ 블록 {i+1}의 타입이 다릅니다: 원본 {orig_block['type']}, 현재 {curr_block['type']}")[m
+[32m+[m[32m                        continue[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    # 텍스트 콘텐츠 비교[m
+[32m+[m[32m                    if orig_block["type"] in ["paragraph", "heading_1", "heading_2", "heading_3",[m[41m [m
+[32m+[m[32m                                             "bulleted_list_item", "numbered_list_item", "to_do", "code"]:[m
+[32m+[m[32m                        orig_text = self._get_text_from_block(orig_block)[m
+[32m+[m[32m                        curr_text = self._get_text_from_block(curr_block)[m
+[32m+[m[41m                        [m
+[32m+[m[32m                        if orig_text.strip() != curr_text.strip():[m
+[32m+[m[32m                            logger.warning(f"⚠️ 블록 {i+1}의 내용이 다릅니다:")[m
+[32m+[m[32m                            logger.warning(f"  원본: {orig_text[:100]}...")[m
+[32m+[m[32m                            logger.warning(f"  현재: {curr_text[:100]}...")[m
+[32m+[m[32m                else:[m
+[32m+[m[32m                    logger.warning(f"❌ 블록 {i+1}이 현재 버전에서 누락되었습니다.")[m
+[32m+[m[41m            [m
+[32m+[m[32m            # 추가 블록 확인[m
+[32m+[m[32m            if len(current_blocks) > len(original_blocks):[m
+[32m+[m[32m                for i in range(len(original_blocks), len(current_blocks)):[m
+[32m+[m[32m                    logger.warning(f"❌ 블록 {i+1}이 원본에 없는 추가 블록입니다.")[m
+[32m+[m[32m                    curr_text = self._get_text_from_block(current_blocks[i])[m
+[32m+[m[32m                    logger.warning(f"  내용: {curr_text[:100]}...")[m
+[32m+[m[41m                    [m
+[32m+[m[32m            return len(original_blocks) == len(current_blocks)[m
+[32m+[m[41m                [m
+[32m+[m[32m        except Exception as e:[m
+[32m+[m[32m            logger.error(f"업로드 검증 중 오류 발생: {str(e)}")[m
+[32m+[m[32m            return False[m
+[32m+[m[41m            [m
+[32m+[m[32m    def _get_text_from_block(self, block):[m
+[32m+[m[32m        """블록에서 텍스트 내용을 추출합니다."""[m
+[32m+[m[32m        block_type = block["type"][m
+[32m+[m[41m        [m
+[32m+[m[32m        if block_type == "paragraph":[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block['paragraph']['rich_text']])[m
+[32m+[m[32m        elif block_type.startswith("heading_"):[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block[block_type]['rich_text']])[m
+[32m+[m[32m        elif block_type == "bulleted_list_item":[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block['bulleted_list_item']['rich_text']])[m
+[32m+[m[32m        elif block_type == "numbered_list_item":[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block['numbered_list_item']['rich_text']])[m
+[32m+[m[32m        elif block_type == "to_do":[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block['to_do']['rich_text']])[m
+[32m+[m[32m        elif block_type == "code":[m
+[32m+[m[32m            return ''.join([t.get('plain_text', '') for t in block['code']['rich_text']])[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            return ""[m
+[32m+[m[41m            [m
+[32m+[m[32m    def store_original_content(self, page_id, content):[m
+[32m+[m[32m        """업로드 전 내용을 캐시에 저장합니다."""[m
+[32m+[m[32m        self.upload_cache[page_id] = content[m
+[32m+[m[41m            [m
+[32m+[m[32m    def markdown_to_blocks(self, md_content):[m
+[32m+[m[32m        """마크다운 내용을 노션 블록으로 변환합니다."""[m
+[32m+[m[32m        blocks = [][m
+[32m+[m[32m        current_block = {"type": "paragraph", "content": ""}[m
+[32m+[m[32m        lines = md_content.split('\n')[m
+[32m+[m[32m        i = 0[m
+[32m+[m[41m        [m
+[32m+[m[32m        while i < len(lines):[m
+[32m+[m[32m            line = lines[i].strip()[m
+[32m+[m[32m            i += 1
