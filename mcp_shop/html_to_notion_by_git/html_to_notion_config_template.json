@@ -3,7 +3,7 @@
     "command": "python",
     "args": ["{MCP_SCRIPTS_DIR}/html_to_notion.py"],
     "env": {
-      "GITHUB_TOKEN": "{GITHUB_TOKEN}"
+      "GITHUB_TOKEN": "${GITHUB_TOKEN}"
     },
     "restart_policy": {
       "max_restarts": 5,
