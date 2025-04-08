@@ -1,1 +1,22 @@
-{"SERVERS": [{"NAME": "HTML to Notion", "ENABLED": true, "TYPE": "fastmcp", "SCRIPT_PATH": "{MCP_SCRIPTS_DIR}/html_to_notion.py", "ROUTES": [{"PATH": "/html-to-notion", "METHOD": "POST"}], "ENV": {"GITHUB_TOKEN": "{GITHUB_TOKEN}", "GITHUB_USERNAME": "{GITHUB_USERNAME}"}, "DEPENDENCIES": ["fastmcp", "requests"]}]} 
+{
+  "HTML to Notion": {
+    "NAME": "HTML to Notion",
+    "ENABLED": true,
+    "TYPE": "fastmcp",
+    "SCRIPT_PATH": "{MCP_SCRIPTS_DIR}/html_to_notion.py",
+    "ROUTES": [
+      {
+        "PATH": "/html-to-notion",
+        "METHOD": "POST"
+      }
+    ],
+    "ENV": {
+      "GITHUB_TOKEN": "{GITHUB_TOKEN}",
+      "GITHUB_USERNAME": "{GITHUB_USERNAME}"
+    },
+    "DEPENDENCIES": [
+      "fastmcp",
+      "requests"
+    ]
+  }
+} 
