@@ -549,9 +549,46 @@ def install_mcp_template(mcp_name, mcp_dir=None):
                 
                 # 2. 환경 변수 설정 검증
                 if 'env' in server_config:
+                    env_needs_update = False
                     for env_var, value in server_config['env'].items():
-                        if isinstance(value, str) and (value.startswith('$') or value == env_var):
+                        if isinstance(value, str) and (value.startswith('{') or value == env_var or value.startswith('$')):
                             validation_issues.append(f"- 환경 변수가 설정되지 않음: {env_var}")
+                            env_needs_update = True
+                    
+                    # 환경 변수 업데이트가 필요한 경우
+                    if env_needs_update:
+                        print("\n환경 변수가 제대로 설정되지 않았습니다. 수동으로 입력해주세요.")
+                        updated_env = {}
+                        
+                        for env_var, value in server_config['env'].items():
+                            if isinstance(value, str) and (value.startswith('{') or value == env_var or value.startswith('$')):
+                                if env_var == "GITHUB_TOKEN":
+                                    prompt = "GitHub 개인 액세스 토큰을 입력하세요: "
+                                elif env_var == "GITHUB_USERNAME":
+                                    prompt = "GitHub 사용자 이름을 입력하세요: "
+                                else:
+                                    prompt = f"{env_var} 값을 입력하세요: "
+                                
+                                new_value = input(prompt).strip()
+                                if new_value:
+                                    updated_env[env_var] = new_value
+                                else:
+                                    print(f"경고: {env_var}에 값이 입력되지 않았습니다.")
+                                    updated_env[env_var] = value  # 기존 값 유지
+                            else:
+                                updated_env[env_var] = value  # 기존 값 유지
+                        
+                        # 환경 변수 업데이트
+                        server_config['env'] = updated_env
+                        config['mcpServers'][mcp_name]['env'] = updated_env
+                        
+                        # 설정 파일 저장
+                        with open(config_file, 'w', encoding='utf-8') as f:
+                            json.dump(config, f, indent=2)
+                        
+                        print("환경 변수가 업데이트되었습니다.")
+                        # 검증 이슈 목록 업데이트 (해결된 항목 제거)
+                        validation_issues = [issue for issue in validation_issues if not issue.startswith("- 환경 변수가 설정되지 않음")]
                 
                 # 검증 결과 출력
                 if validation_issues:
