@@ -4,6 +4,17 @@
   "description": "Convert Claude-generated HTML to GitHub Gist and embed in Notion",
   "author": "Claude Developer",
   "requires_authentication": true,
+  "authentication_guide": [
+    "Log in to your GitHub account",
+    "Go to Settings > Developer Settings > Personal access tokens > Tokens (classic)",
+    "Click Generate new token and select Generate new token (classic)",
+    "Name your token and select the gist permission",
+    "Click Generate token and copy your token"
+  ],
+  "authentication_token_name": "GITHUB_TOKEN",
+  "authentication_token_prompt": "GitHub 개인 액세스 토큰을 입력하세요",
+  "authentication_username_name": "GITHUB_USERNAME",
+  "authentication_username_prompt": "GitHub 사용자 이름을 입력하세요",
   "auth_info": [
     {
       "key": "GITHUB_TOKEN",
