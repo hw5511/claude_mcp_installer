@@ -1,23 +1,14 @@
 {
   "HTML to Notion": {
-    "NAME": "HTML to Notion",
-    "ENABLED": true,
-    "TYPE": "fastmcp",
     "command": "python",
     "args": ["{MCP_SCRIPTS_DIR}/html_to_notion.py"],
-    "ROUTES": [
-      {
-        "PATH": "/html-to-notion",
-        "METHOD": "POST"
-      }
-    ],
-    "ENV": {
-      "GITHUB_TOKEN": "{GITHUB_TOKEN}",
-      "GITHUB_USERNAME": "{GITHUB_USERNAME}"
+    "env": {
+      "GITHUB_TOKEN": "{GITHUB_TOKEN}"
     },
-    "DEPENDENCIES": [
-      "fastmcp",
-      "requests"
-    ]
+    "restart_policy": {
+      "max_restarts": 5,
+      "restart_delay": 2000
+    },
+    "stdio_format": "json"
   }
 } 
