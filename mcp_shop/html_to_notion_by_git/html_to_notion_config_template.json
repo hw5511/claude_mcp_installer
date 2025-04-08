@@ -3,7 +3,8 @@
     "NAME": "HTML to Notion",
     "ENABLED": true,
     "TYPE": "fastmcp",
-    "SCRIPT_PATH": "{MCP_SCRIPTS_DIR}/html_to_notion.py",
+    "command": "python",
+    "args": ["{MCP_SCRIPTS_DIR}/html_to_notion.py"],
     "ROUTES": [
       {
         "PATH": "/html-to-notion",
