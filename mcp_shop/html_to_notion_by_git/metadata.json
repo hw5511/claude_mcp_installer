@@ -13,19 +13,11 @@
   ],
   "authentication_token_name": "GITHUB_TOKEN",
   "authentication_token_prompt": "GitHub 개인 액세스 토큰을 입력하세요",
-  "authentication_username_name": "GITHUB_USERNAME",
-  "authentication_username_prompt": "GitHub 사용자 이름을 입력하세요",
   "auth_info": [
     {
       "key": "GITHUB_TOKEN",
       "name": "GitHub Personal Access Token",
       "description": "GitHub API token with gist permission",
-      "required": true
-    },
-    {
-      "key": "GITHUB_USERNAME",
-      "name": "GitHub Username",
-      "description": "Your GitHub username",
       "required": true
     }
   ],
