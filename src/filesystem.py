@@ -25,8 +25,15 @@ except json.JSONDecodeError:
 
 def is_path_allowed(path):
     """Check if the given path is within allowed directories."""
-    path = os.path.normpath(path)
-    return any(path.startswith(allowed_dir) for allowed_dir in ALLOWED_DIRS)
+    path = os.path.abspath(os.path.normpath(path))
+    normalized_allowed_dirs = [os.path.abspath(os.path.normpath(dir_path)) for dir_path in ALLOWED_DIRS]
+    
+    for allowed_dir in normalized_allowed_dirs:
+        # Windows 대소문자 구분 없이 경로 비교
+        if path.lower().startswith(allowed_dir.lower() + os.sep) or path.lower() == allowed_dir.lower():
+            return True
+    
+    return False
 
 @mcp.tool()
 async def read_file(path: str) -> str:
